@@ -1,0 +1,12 @@
+name: chisquare_tests_2
+title: chisquare_tests_2
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1963693
+bundleId: 2895801
+url: https://jroith.shinyapps.io/chisquare_tests_2/
+when: 1584569510.07883
+asMultiple: FALSE
+asStatic: FALSE
