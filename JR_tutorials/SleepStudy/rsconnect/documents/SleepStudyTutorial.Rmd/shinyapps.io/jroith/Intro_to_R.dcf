@@ -1,0 +1,13 @@
+name: Intro_to_R
+title:
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1767069
+bundleId: 4054809
+url: https://jroith.shinyapps.io/Intro_to_R/
+when: 1609724578.83744
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: SleepStudyTutorial_hardcopy.pdf|SleepStudyTutorial_hardcopy.Rmd

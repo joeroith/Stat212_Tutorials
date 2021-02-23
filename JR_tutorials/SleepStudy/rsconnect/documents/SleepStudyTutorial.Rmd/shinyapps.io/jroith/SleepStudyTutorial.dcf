@@ -1,0 +1,13 @@
+name: SleepStudyTutorial
+title: SleepStudyTutorial
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1787272
+bundleId: 4054829
+url: https://jroith.shinyapps.io/SleepStudyTutorial/
+when: 1609725308.56297
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: SleepStudyTutorial_hardcopy.pdf|SleepStudyTutorial_hardcopy.Rmd
