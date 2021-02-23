@@ -1,0 +1,13 @@
+name: data_wrangling
+title: data_wrangling
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1854848
+bundleId: 4060709
+url: https://jroith.shinyapps.io/data_wrangling/
+when: 1609857559.13325
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: data_wrangling.html|images/movies.Rdata
