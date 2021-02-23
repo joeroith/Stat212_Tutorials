@@ -1,0 +1,12 @@
+name: bootstrap_tutorial
+title: bootstrap_tutorial
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2141919
+bundleId: 3031905
+url: https://jroith.shinyapps.io/bootstrap_tutorial/
+when: 1587235730.98258
+asMultiple: FALSE
+asStatic: FALSE
