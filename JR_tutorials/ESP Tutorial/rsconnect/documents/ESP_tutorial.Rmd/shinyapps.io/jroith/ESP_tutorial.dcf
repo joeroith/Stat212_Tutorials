@@ -1,0 +1,13 @@
+name: ESP_tutorial
+title: ESP_tutorial
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2421247
+bundleId: 3594690
+url: https://jroith.shinyapps.io/ESP_tutorial/
+when: 1599257920.73133
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: ESP_tutorial_hardcopy.pdf|ESP_tutorial_hardcopy.Rmd|ESP_tutorial.html
