@@ -1,0 +1,13 @@
+name: DolphinLabTutorial
+title: DolphinLabTutorial
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1829743
+bundleId: 3577024
+url: https://jroith.shinyapps.io/DolphinLabTutorial/
+when: 1598903860.04179
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: DolphinLabTutorial_hardcopy.pdf|DolphinLabTutorial_hardcopy.Rmd|DolphinLabTutorial.html
