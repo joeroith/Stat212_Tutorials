@@ -1,0 +1,12 @@
+name: dolphin-sim
+title: dolphin-sim
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2736706
+bundleId: 3581088
+url: https://jroith.shinyapps.io/dolphin-sim/
+when: 1598986380.77157
+asMultiple: FALSE
+asStatic: FALSE
