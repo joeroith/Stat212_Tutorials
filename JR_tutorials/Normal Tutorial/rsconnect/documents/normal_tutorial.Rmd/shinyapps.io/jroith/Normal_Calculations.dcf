@@ -1,0 +1,13 @@
+name: Normal_Calculations
+title: Normal_Calculations
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1873321
+bundleId: 3606598
+url: https://jroith.shinyapps.io/Normal_Calculations/
+when: 1599576355.69369
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: normal_tutorial_hardcopy.pdf|normal_tutorial_hardcopy.Rmd|normal_tutorial.html

@@ -1,0 +1,270 @@
+---
+title: "Central Limit Theorem and the Normal Distribution"
+output:
+  pdf_document:
+    fig_height: 3
+    fig_width: 4.5
+  html_document: default
+  word_document: default
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+#library(learnr)
+library(mosaic)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## Characteristics of the Normal Distribution
+
+> We run into the Normal distribution a lot in the real world and in statistics. What are some of the things that define a Normal distribution?
+
+![](images/normal.png){width=50%}
+
+&nbsp;
+
+What is the shape of a Normal distribution?^[b,d]
+
+a) Skewed
+
+b) Symmetric
+
+c) Bimodal
+
+d) Unimodal
+
+
+What is the best numerical summary to use for the center of a Normal Distribution?^[a]
+
+a) Mean
+
+b) Median
+
+c) Standard deviation
+
+d) IQR
+
+  
+What is the best numerical summary to use for the spread of a Normal Distribution?^[c]
+
+a) Mean
+
+b) Median
+
+c) Standard deviation
+
+d) IQR
+
+
+## Empirical Rule
+
+The **Empirical Rule**, or **68-95-99.7 Rule** applies to any Normal distribution. This rule lets us understand what are the *most common* values observations from the population take. It is helpful for making quick estimates of what values observations in the population tend to take. useful to know what values occur most frequently and which ones are rare.
+
+![](images/emp_rule_z.jpg){width=50%}
+
+&nbsp;
+
+Approximate the following using the Emirical Rule and Z ~ N(0, 1)
+What percentage of observations will be between $Z = -1$ and $Z = 1$? In shorthand: $P(-1 < Z < 1) =$ ^[d]
+
+a) 100%
+
+b) 99.7%
+
+c) 95%
+
+d) 68%
+
+$P(Z > -2) =$^[d]
+
+a) 95%
+
+b) 50%
+
+c) 5%
+
+d) 97.5%
+
+
+$P(-2 < Z < 1) =$^[a]
+
+a) 81.5%
+
+b) 68%
+
+c) 95%
+
+d) 78.5%
+
+$P(-z^* < Z < z^*) = 0.95$^[b]
+
+a) $z^* = 1$
+
+b) $z^* = 2$
+
+c) $z^* = 3$
+
+d) Impossible to know
+
+
+
+Approximate the following using the Emirical Rule and X ~ N(100, 10). Hint: Draw a picture of the curve.
+$P(X > 80) =$^[a]
+
+a) 97.5%
+
+b) 95%
+
+c) 75%
+
+d) 2.5%
+
+$P(90 < X < 120) =$^[c]
+
+a) 68%
+
+b) 95%
+
+c) 81.5%
+
+d) 78.5%
+
+$P(a < X < b) = 0.95$^[a]
+
+a) $a = 80$ and $b = 120$
+
+b) $a = 90$ and $b = 110$
+
+c) $a = 95$ and $b = 95$
+
+d) $a = -2$ and $b = 2$
+
+
+
+## Beyond the Empirical 
+
+### Old way - if you're interested...
+
+In most cases, we would like to use a Normal Distribution with more than "whole" standard deviations. It is difficult to find the proportion below -1.5 or above 2.33 standard deviations using the Empirical Rule.
+
+In the past, we used a standard Normal table. But with the technology we have now, this method has gone the way of the dodo.
+
+![](images/ztable.png)
+
+### New way
+
+Now we can use `R` to calculate and visualize area under the Normal curve. The function `xpnorm` in the `mosaic` package provides a nice way to calculate and visualize these areas. To use `xpnorm`, you need some basic argument inputs:
+
+
+> `xpnorm(q, mean, sd, lower.tail)`
+
+&nbsp;
+
+| Argument | Purpose | Default |
+| -------- | -------------------------- | --------------- |
+| `q`      | the quantile (`q`) value(s) on the x-axis we would like to use as a vertical cutoff. In other words: the value(s) on the Normal curve we are interested in | No default, must specify in code |
+| `mean` | the mean value for the Normal distribution we are interested in | `mean = 0` |
+| `sd` | the standard deviation for the Normal distribution we are interested in | `sd = 1` |
+| `lower.tail` | specify the direction to calculate the proportion (the purple tail) | `lower.tail = TRUE` |
+
+On a Standard Normal Distribution ($Z \sim N(0,1)$), to find: $$P(Z < -1.5)=$$
+
+```{r help}
+xpnorm(q = -1.5, mean = 0, sd = 1, lower.tail = TRUE)
+```
+
+We can see that $\approx 6.7\%$ of observations are more than 1.5 standard deviations below the mean on a Standard Normal curve.
+
+### Your turn
+
+Find the following probabilities in R from $Z \sim N(0,1)$:
+
+$P(Z < 0.5)=$
+
+```{r}
+xpnorm(q = 0.5, mean = 0, sd = 1)
+```
+
+
+$P(-1.5 < Z < 0.5)=$
+
+```{r}
+xpnorm(q = c(-1.5, 1.5), mean = 0, sd = 1)
+```
+
+
+Find the following probabilities from $X \sim N(100, 10)$:
+
+$P(X > 85) =$
+
+```{r}
+xpnorm(q = 85, mean = 100, sd = 10, lower.tail = FALSE)
+```
+
+$P(85 < X < 105)=$
+
+```{r}
+xpnorm(q = c(85, 105), mean = 100, sd = 10)
+```
+
+> These are all examples of finding the probability when we have a known quantile (reference point). We can also reverse the process.
+
+## Finding Quantiles/Percentiles
+
+### The `xqnorm` function
+
+Explore the help documentation for `?xqnorm` or use your intuition to answer the following questions. (Advice: help documentation looks sort of weird in these tutorials, so you may want to switch to regular RStudio when using `?xqnorm`)
+
+For $Z \sim N(0,1)$, find the 85th percentile:
+
+
+```{r}
+# In the previous examples we entered a quantile and 
+# got a proportion for the lower tail.
+# Now try entering a proportion to get a  
+# quantile/percentile
+xqnorm(p = 0.85, mean = 0, sd = 1, lower.tail = TRUE)
+```
+
+Find the cutoffs (quantiles) for the middle 90% ($P(-z^*<Z<z^*) = 0.90$) on a Standard Normal curve.
+
+
+```{r}
+## Think about what two lower tail percentiles could
+## be used to find the middle 90%
+xqnorm(p = c(0.05, 0.95), mean = 0, sd = 1)
+```
+
+
+Find the quantile for the *upper* 10% of $X \sim N(100, 10)$:
+
+```{r q3, exercise = TRUE}
+xqnorm(p = 0.10, mean = 100, sd = 10, lower.tail = FALSE)
+```
+
+
+Find the cutoff values for the middle 90% of $X \sim N(100, 10)$:
+
+```{r q4, exercise = TRUE}
+xqnorm(p = c(0.05, 0.95), mean = 100, sd = 10)
+```
+
+
+## Recap
+
+### Bringing it all together
+
+So `xpnorm` gives us a proportion (`p`) under the Normal curve when we **already know** the quantile(s) (`q`).
+
+And `xqnorm` gives us a quantile(s) (`q`) for a proportion (`p`) under the Normal curve we are **already interested in**.
+
+
+Quantiles and area under the Normal curve allow us to answer questions about populations and samples. Recall that our simulated null distributions all looked very similar to the Normal curve. And remember that when we are calculating p-values to measure strength of sample evidence, we needed to know the proportion of simulated samples more extreme than our observed sample. This is a preview of what we use the normal distribution for...
+
+### Hopefully the Normal distribution is a little less scary now.
+
+![](images/paranormal.jpg)
+
