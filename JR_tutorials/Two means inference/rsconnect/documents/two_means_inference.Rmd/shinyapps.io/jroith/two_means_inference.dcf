@@ -1,0 +1,13 @@
+name: two_means_inference
+title: two_means_inference
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2101075
+bundleId: 3292495
+url: https://jroith.shinyapps.io/two_means_inference/
+when: 1592581337.76332
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: two_means_inference_hardcopy.pdf|two_means_inference_hardcopy.Rmd|two_means_inference.html
