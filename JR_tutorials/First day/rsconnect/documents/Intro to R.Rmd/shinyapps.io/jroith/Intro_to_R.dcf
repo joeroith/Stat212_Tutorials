@@ -1,0 +1,13 @@
+name: Intro_to_R
+title: Intro_to_R
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1767069
+bundleId: 4054819
+url: https://jroith.shinyapps.io/Intro_to_R/
+when: 1609724854.51281
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: births.pdf|births.Rmd|Day1.pdf|Day1.Rmd|First-Day.html|First-Day.Rmd|Intro to R_hardcopy.Rmd|Intro_to_R_hardcopy.pdf|Intro_to_R.html|First-Day_files/figure-html/unnamed-chunk-2-1.png|First-Day_files/figure-html/unnamed-chunk-3-1.png
