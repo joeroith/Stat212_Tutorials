@@ -1,0 +1,12 @@
+name: intro_Rstudio
+title: intro_Rstudio
+username:
+account: jdavila
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3617621
+bundleId: 4207588
+url: https://jdavila.shinyapps.io/intro_Rstudio/
+when: 1612994711.37625
+asMultiple: FALSE
+asStatic: FALSE

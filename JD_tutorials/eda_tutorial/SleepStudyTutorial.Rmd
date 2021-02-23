@@ -1,0 +1,297 @@
+---
+title: "Sleep Study Data"
+author: "Joe Roith/Jaime Davila"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  learnr::tutorial:
+    allow_skip: TRUE
+    progressive: TRUE
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(openintro)  
+library(mosaic)  
+library(dplyr)  
+library(ggplot2)
+library(ggmosaic)
+library(readr)
+
+sleep <- read_csv("SleepStudy.csv") %>%
+   mutate(Class = recode_factor (ClassYear, `1`="Firstyear", `2`="Sophomore", 
+                                      `3`="Junior", `4`="Senior"))
+mytable <- table(sleep$LarkOwl, sleep$Class)
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  fig.align = "center",
+  fig.width = 6, fig.height = 4)
+```
+
+## Sleep Study 
+
+### Data Description
+
+Circadian rhythms refer to biological processes that have a period of around 24 hours. These processes allow organisms to coordinate behavior with the day/night cycle.
+
+Circadian rhythms vary across individuals and have been categorized into three chronotypes; morning type, evening type and intermediate type. These refer to the time of day when individuals are most active. A number of studies have indicated that chronotypes differ in aspects of personality, such as depression, creativity, and sociosexuality. 
+
+Today we'll explore data collected by Onyper et al on a number of variables associated with sleep. The data was collected from 253 students from a small, Northeastern liberal arts college. Students kept a sleep diary, took a survey about attitudes and habits, and performed cognitive tests. Information about GPA and demographic characteristics were also recorded. The study has been posted on Moodle.
+
+### Import data to R
+
+The line of code below is what allows us to take the file with the sleep data, named `SleepStudy.csv`, and bring it into our R session so we can explore it under the name `sleep`. All of the data we use will be stored in the `Data` folder under `Class`. This line of code will be very useful as you import *different* data sets for future examples and homework. Make sure to replace the line **Stats 212a S21** for the line that describes your section and year.
+
+```{r, eval = FALSE, echo = TRUE}
+sleep <- read_csv("~/Stats 212a S21/Class/Data/SleepStudy.csv")
+```
+
+
+A full list of variables is provided below.
+
+Variable | Description  | 
+-------------------- | --------------------- | 
+`r names(sleep)[1]`    |           Sex (1 = male, 0 = female)         |        
+`r names(sleep)[2]`    |           Year in school         |        
+`r names(sleep)[3]`    |           Early riser or night owl or neither        |        
+`r names(sleep)[4]`    |           Number classes per week before 9:00 AM         |        
+`r names(sleep)[5]`    |           Indicator for early classes         |        
+`r names(sleep)[6]`    |           GPA         |        
+`r names(sleep)[7]`    |           Number classes missed         |        
+`r names(sleep)[8]`    |           Z score for cognitive skills test         |        
+`r names(sleep)[9]`    |           Measure of sleep quality         |        
+`r names(sleep)[10]`    |           Measure of degree of depression         |        
+`r names(sleep)[11]`    |           Measure of amount of anxiety         |        
+`r names(sleep)[12]`    |           Measure of amount of stress         |        
+`r names(sleep)[13]`    |           Depression score         |        
+`r names(sleep)[14]`    |           Anxiety score         |        
+`r names(sleep)[15]`    |           Stress score         |        
+`r names(sleep)[16]`    |           Combined score (depression + anxiety + stress)         |        
+`r names(sleep)[17]`    |           Measure of degree of happiness         |        
+`r names(sleep)[18]`    |           Self reported alcohol use         |        
+`r names(sleep)[19]`    |           Number alcoholic drinks per week         |        
+`r names(sleep)[20]`    |           Average weekday bed time (24 = midnight)         |        
+`r names(sleep)[21]`    |           Average weekday rise time (8.0 = 8:00 AM)         |        
+`r names(sleep)[22]`    |           Average hours of sleep on weekdays         |        
+`r names(sleep)[23]`    |           Average weekend bed time (24 = midnight)         |        
+`r names(sleep)[24]`    |           Average weekend rise time (8.0 = 8:00 AM)         |        
+`r names(sleep)[25]`    |           Average hours of sleep on weekends         |        
+`r names(sleep)[26]`    |           Average hours of sleep for all days         |        
+`r names(sleep)[27]`    |           Indicator for all nighter (1 = yes, 0 = no)          |  
+
+How many variables and cases are in the data set `sleep`? The `dim` function gives us the dimensions of a data table (# rows x # columns). The function `head` is also useful to look at the first few rows and check the data.
+
+```{r zero, exercise = TRUE}
+dim(sleep)
+head(sleep)
+```
+
+
+## Exploratory Data Analysis (EDA) in `R`
+
+### Getting started
+
+We'll use `R` to develop visualizations and summary statistics to help us explore the sleep data. This tutorial will walk you through the analysis. The code is also available in the `4_EDA_Script.Rmd` file. This contains the `R` code necessary to read in the Sleep Study data and generate summary statistics and visualizations. For visualizations we will be using extensively the `ggplot2` package, so we will be introducing the syntax for using it.
+
+Go through the analysis step by step, be sure you understand the code, and answer the questions on the accompanying worksheet (also provided on the R server under the `Ch 1` folder).
+
+### Packages
+
+One thing we use a lot in R is supplementary *packages* with nice built-in functions for common tasks we'd like to perform. We need to first load these packages before using the functions. The code below does this for the common packages we'll use.
+
+```{r, eval=FALSE, echo = TRUE}
+library(openintro)  
+library(mosaic)  
+library(dplyr)  
+library(ggplot2)
+library(ggmosaic)
+library(readr)
+```
+
+
+These need to be loaded *for each* document you'd like to use the functions for.
+
+### EDA for single numerical variable (`GPA`)
+
+
+#### Summary statistics
+We can summarize a numerical variable by making use of the function `favstats` from the `mosaic` package which returns some summary statistics for a particular variable as illustrated in the following code:
+
+```{r cero-a, exercise = TRUE}
+favstats(sleep$GPA)
+```
+
+Notice how we use the syntax `sleep$GPA` which means to take variable `GPA` from the dataset `sleep`
+
+#### Histograms.
+
+**Histograms** are used to summarize single numeric variables and we will be using histograms from the `ggplot2` package. 
+
+In general to use the `ggplot2` we will be using the following template:
+
+> `ggplot(_______, aes(____)) + geom_function()`
+
+* The first element is the dataset that we will be using (`sleep`)
+
+* The second element is the definition of what variables are we interested in plotting (`x=GPA`)
+
+* The final element is the plotting function that we will be using (`geom_histogram`).
+
+
+The code for the histogram of `GPA` will look like
+
+```{r one, exercise = TRUE}
+ggplot(sleep, aes(x=GPA))+
+  geom_histogram()
+```
+
+Please notice how we are connecting or layering `ggplot` and `geom_histogram` using the `+` sign. In general we can add more layers to the graph by using the `+` sign.
+
+
+### EDA for single categorical variable (`LarkOwl`)
+
+#### Summary statistics
+
+A simple **frequency table** that counts the number of responses for each level of a categorical variable is a nice way to summarize categorical data. But finding the proportion of cases that belong to each level is even more informative.
+
+```{r two, exercise = TRUE}
+mytable <- table(sleep$LarkOwl)  # a table of proportions needs to saved as a table first
+mytable
+prop.table(mytable)  # then converted to a table of proportions
+```
+
+Notice that:
+
+* The first line creates a new object called `mytable` with the tally of each possible level obtained by using the function `table`.
+* The third line calculates some summary statistics for this same variable using the function `prop.table`.
+
+#### Bar plots
+
+We can use the function `geom_bar` to plot this variable as follows:
+
+```{r two_a, exercise=TRUE}
+ggplot(sleep, aes(x=LarkOwl))+
+  geom_bar()
+```
+
+If we want to get a bar-plot with proportions we need to modify the above code to be
+
+```{r two_b, exercise=TRUE}
+ggplot(sleep, aes(x=LarkOwl, y=..prop.., group=1))+
+  geom_bar()
+```
+
+### EDA for one numerical (`ClassesMissed`) and one categorical (`LarkOwl`)
+
+#### Summary statistics
+
+When there are one of each type of variables, we typically summarize the numerical one and separate it into the different levels of the categorical variable. We can do this by using the `favstats` command as shown below.
+
+```{r six, exercise = TRUE}
+favstats( ClassesMissed~LarkOwl, data = sleep)
+```
+
+Notice that the first argument of `favstats` is a formula with syntax `y~x`, where `y` is the response variable (`ClassesMissed`) and `x` is the explanatory variable (`LarkOwl`)
+
+#### Boxplots and stacked histograms
+
+The first way to visualize this sort of data is to use a boxplot where the x-axis represents the categorical variable (`LarkOwl`) and the y-axis represents the numeric variable (`ClassesMissed`) as follows:
+
+```{r four, exercise = TRUE}
+ggplot(sleep, aes(x=as.factor(LarkOwl), y=ClassesMissed))+
+  geom_boxplot()
+```
+Notice that `LarkOwl` is a string, so we need to convert to a categorical variable by using the function `as.factor`.
+
+Sometimes these boxplots are easier to view if we switch the x and y axis by using:
+
+
+```{r four_a, exercise = TRUE}
+ggplot(sleep, aes(y=as.factor(LarkOwl), x=ClassesMissed))+
+  geom_boxplot()
+```
+
+Finally we can visualize these information by using stacked histogram which can be coded by
+
+```{r four_b, exercise=TRUE}
+ggplot(sleep, aes(x=ClassesMissed))+
+  geom_histogram()+
+  facet_grid(LarkOwl~.)
+```
+
+Notice that in the last plot we use the function `facet_grid` which receives a formula with syntax (`y~x`). In our case we decide to have the variable `LarkOwl` on the y-axis and no additional variable (`.`) on the x-axis.
+
+
+
+### EDA for two numerical variables (`GPA` and `ClassesMissed`)
+
+
+#### Summary statistics
+
+We can summarize the relationship between two numerical variables by using the **correlation** through the `cor` function as shown below. Notice how the correlation does not depend on the order of the variables.
+
+```{r seven, exercise = TRUE}
+cor(sleep$GPA, sleep$ClassesMissed)
+  # find correlation coefficient between two variables
+```
+
+#### Scatter plots
+
+**Scatter plots** can display two numerical variables. And one way to summarize them is with a line that describes the pattern (more on this in Ch. 5). We can visualize this using the command:
+
+```{r eight, exercise = TRUE}
+ggplot(sleep, aes(x=ClassesMissed, y = GPA)) + 
+  geom_point() + 
+  geom_smooth(method = lm)
+```
+
+Notice how in this example we are using `geom_point` for doing the scatter plots and we are using `geom_smooth(method=lm)` to overlay the linear trend between the two variables.
+
+### EDA for two categorical variables (`LarkOwl` and `ClassYear`)
+
+#### Summary statistics
+
+**Two-way**, or **Contingency tables** can organize two categorical variables into how frequently they occur. We can do that by using the function `table`
+
+```{r nine, exercise = TRUE}
+table(sleep$LarkOwl, sleep$ClassYear)
+mytable <- table(sleep$LarkOwl, sleep$ClassYear)
+```
+
+We can often get better information by looking at proportions. `prop.table` turns a table of counts into a table of proportions. Notice how we can present those proportions by rows or by columns (using the second argument of the function `prop.table`)
+
+```{r nine_a, exercise=TRUE}
+prop.table(mytable, 1)  # proportions by rows
+prop.table(mytable, 2)  # proportions by columns
+```
+
+#### Bar plots and mosaic plots
+
+The following code allows to create barplots summarizing the two categorical variables
+
+```{r eleven, exercise = TRUE}
+ggplot(data = sleep, aes(x = ClassYear, fill = LarkOwl)) + 
+  geom_bar() 
+
+ggplot(data = sleep, aes(x=ClassYear, fill=LarkOwl)) + 
+  geom_bar(position = "fill") 
+```
+
+Notice how we use the argument `fill=` to represent the second variable using a different color for each category. Also notice that the second graph uses the argument `position="fill"` to generate the proportions, instead of the raw counts.
+
+Finally we can use mosaic plot by using the `geom_mosaic` function
+
+```{r eleven_a, exercise = TRUE}
+ggplot(data=sleep)+
+    geom_mosaic(aes(x=product(ClassYear), fill=LarkOwl))+
+    labs(x="ClassYear", y="LarkOwl")
+```
+
+Notice that for `geom_mosaic` we need to provide the variables that we will be plotting as arguments (instead of passing them in `ggplot`). Also notice that we use the command `labs` to give appropriate labels for the x and y axis (try using this command to change labels in other plots!)
+
+
+## Play around
+
+Feel free to open the `4_EDA_Script.Rmd` file and play around with it on the server. Change variables and produce different plots!
+
