@@ -1,0 +1,13 @@
+name: One_sample_means
+title: One_sample_means
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2057590
+bundleId: 3292430
+url: https://jroith.shinyapps.io/One_sample_means/
+when: 1592580540.97058
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: onemean_and_t_hardcopy.pdf|onemean_and_t_hardcopy.Rmd|onemean_and_t.html

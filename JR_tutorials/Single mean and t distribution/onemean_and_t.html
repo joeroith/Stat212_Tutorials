@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+<meta name="progressive" content="true" />
+<meta name="allow-skip" content="true" />
+
+<title>Single Numeric Variables and the t-Distribution</title>
+
+
+<!-- highlightjs -->
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+<!-- taken from https://github.com/rstudio/rmarkdown/blob/67b7f5fc779e4cfdfd0f021d3d7745b6b6e17149/inst/rmd/h/default.html#L296-L362 -->
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("section-TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+<!-- end tabsets -->
+
+
+
+</head>
+
+<body>
+
+
+
+<div class="pageContent band">
+<div class="bandContent page">
+
+<div class="topics">
+
+<div id="section-review" class="section level2">
+<h2>Review</h2>
+<p>Let’s review a little.</p>
+<div id="section-big-picture" class="section level3">
+<h3>Big Picture</h3>
+<p><strong>The Statistical Process</strong></p>
+<p><img src="images/statprocess.png" style="width:100.0%" /></p>
+</div>
+<div id="section-populations-and-samples" class="section level3">
+<h3>Populations and Samples</h3>
+<p>Our goal is to detect patterns and relationships in sample data that is strong enough to infer those relationships are present in the populations. This is our process of <strong>inference</strong>, going from the sample to the population. While it may be interesting to see a pattern in a sample, we want to know if that pattern exists in the <em>entire</em> population.</p>
+<p>Recall that for numeric variables:</p>
+<p><img src="images/numeric_summary.png" style="width:90.0%" /></p>
+</div>
+<div id="section-central-limit-theorem" class="section level3">
+<h3>Central Limit Theorem</h3>
+<p>Understanding how samples behave is critical in our ability to infer things about the population. We saw, through lots of simulations and examples, that sample statistics (proportions, means, standard deviations, etc.) change each time we take a new sample. And that when we take enough samples, we can actually predict how those stats vary and what that <strong>sampling distribution</strong> looks like.</p>
+<p>The <strong>Central Limit Theorem</strong> <em>guarantees</em> us that, under the right conditions, our sample statistics will be normally distributed and we can calculate how much variation we should expect.</p>
+<p>More on this specifically for numeric variables later in the tutorial.</p>
+</div>
+<div id="section-inference-procedures-confidence-intervals" class="section level3">
+<h3>Inference Procedures: Confidence Intervals</h3>
+<p>We take advantage of the CLT and our knowledge that random samples look similar to their populations (“the acorns fall close to the tree”). If we want to estimate the true value of a population parameter, like the proportion of ALL people who vote for a candidate or the mean weight of ALL babies born in a country, we can start by using a sample statistic as a first guess or <strong>point estimate.</strong></p>
+<p>Since we know that a single sample isn’t likely to give us the <em>exact</em> population parameter value, we use the CLT. If we know that 95% of sample statistics fall within two <strong>standard errors</strong> of the true population parameter value, then let’s create an interval for our estimate where the <strong>margin of error</strong> is two standard errors. As long as our sample is one of the 95% that are close enough, our interval should be able to capture the true value.</p>
+<blockquote>
+<p>Confidence interval to estimate a population parameter:</p>
+</blockquote>
+<blockquote>
+<p><font color='red'><strong>Point Estimate</strong></font> <span class="math inline">\(\pm\)</span> <font color='purple'><strong>Margin of error</strong></font></p>
+</blockquote>
+<p>And if we want to change the level of confidence we have in our interval, we can adjust how many standard errors we want to make the margin of error. This <strong>critical value</strong> is based on the type of distribution we know the sample statistics follow.</p>
+<blockquote>
+<p><font color='red'><strong>Point Estimate</strong></font> <span class="math inline">\(\pm\)</span> <font color='orange'><strong>Critical Value</strong></font> <span class="math inline">\(\times\)</span> <font color='blue'><strong>Standard Error</strong></font></p>
+</blockquote>
+</div>
+<div id="section-inference-procedures-hypothesis-tests" class="section level3">
+<h3>Inference Procedures: Hypothesis Tests</h3>
+<p>When we want to formally identify a relationship in the population, we need to test for it. Starting with an assumption that there is no relationship, we determine if the relationship in a single sample is strong enough evidence to conclude the entire population must also have this relationship (otherwise it wouldn’t have been so pronounced in the sample).</p>
+<p>This relationship can be between two variables (Dolphins and Depression) or for a single variable (ESP guessing rate). And we’ve demonstrated several ways to evaluate our sample evidence through hypothesis tests:</p>
+<ul>
+<li><p>Randomization tests through simulations</p></li>
+<li><p>Tests based on theoretical distributions (like Normal or <span class="math inline">\(\chi^2\)</span> distributions)</p></li>
+</ul>
+</div>
+<div id="section-section" class="section level3">
+<h3><a href=""></a></h3>
+<p>In each case, the goal is to determine <em>how unusual is our observed sample under the null assumption of “no relationship/effect/difference”?</em> We take our sample and compute a <strong>p-value</strong> to quantify just that.</p>
+<blockquote>
+<p>The <strong>p-value</strong> is the proportion of samples that will provide the same strength of evidence, or stronger, <em>against</em> the null hypothesis.</p>
+</blockquote>
+<blockquote>
+<p>The <strong>p-value</strong> is the probability that we would observe the same sample we saw, or one more extreme, when we assume there is no relationship/effect/difference in the population.</p>
+</blockquote>
+<p>Read those two definitions for the p-value again, do you see that they are saying the same thing?</p>
+</div>
+<div id="section-section-1" class="section level3">
+<h3><a href=""></a></h3>
+<p>Now that we are hopefully on the same page and primed to continue, let’s move past only thinking about <strong>categorical</strong> variables to start considering what to do when we have <strong>numeric</strong> variables.</p>
+</div>
+</div>
+<div id="section-means-and-the-clt" class="section level2">
+<h2>Means and the CLT</h2>
+<div id="section-sampling-distribution-for-means" class="section level3">
+<h3>Sampling distribution for means</h3>
+<p>We need to understand how sample means (<span class="math inline">\(\bar{x}\)</span>) behave, just like we did for sample proportions (<span class="math inline">\(\hat{p}\)</span>), before we can talk about inference of the population. What does the distribution of sample means look like for different populations?</p>
+<p>Open this <a href="http://onlinestatbook.com/stat_sim/sampling_dist/">CLT for means link</a> in a new window. Watch the short video below about how to use this applet.</p>
+<iframe src="https://stolaf.hosted.panopto.com/Panopto/Pages/Embed.aspx?id=f6256224-b1a2-4e3a-8733-ab93013c575c&amp;autoplay=false&amp;offerviewer=true&amp;showtitle=true&amp;showbrand=false&amp;start=0&amp;interactivity=all" width="720" height="405" style="border: 1px solid #464646;" allowfullscreen allow="autoplay">
+</iframe>
+<p>Now play around with the applet to answer the following questions (you can also see these questions as a worksheet in the Ch. 4 folder on the R server):</p>
+</div>
+<div id="section-section-2" class="section level3">
+<h3><a href=""></a></h3>
+<ol style="list-style-type: decimal">
+<li>The initial population shown is normal with mean (<span class="math inline">\(\mu=16\)</span>) and SD (<span class="math inline">\(\sigma=5\)</span>). If we take samples of size (<span class="math inline">\(n=25\)</span>), what distribution do we expect sample means (<span class="math inline">\(\bar{x}\)</span>) to follow according to the Central Limit Theorem?</li>
+</ol>
+<p><div class="panel-heading tutorial-quiz-title"></div><div class="panel panel-default">
+<div data-label="quiz1-1" class="tutorial-question panel-body">
+<div id="quiz1-1-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-1-message_container" class="shiny-html-output"></div>
+<div id="quiz1-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div><div class="panel panel-default">
+<div data-label="quiz1-2" class="tutorial-question panel-body">
+<div id="quiz1-2-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-2-message_container" class="shiny-html-output"></div>
+<div id="quiz1-2-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div></p>
+<ol start="2" style="list-style-type: decimal">
+<li>Change the distribution to <code>Uniform</code>. How big does <span class="math inline">\(n\)</span> have to be before sample means follow a Normal distribution? Try out different sample sizes (<code>N=</code>) and generate 10,000 samples to see when the distribution becomes Normal. <em>Hint: Click the</em> <code>Fit normal</code> <em>box under the sample size drop-down menu.</em></li>
+</ol>
+<p><div class="panel-heading tutorial-quiz-title"></div><div class="panel panel-default">
+<div data-label="quiz2-1" class="tutorial-question panel-body">
+<div id="quiz2-1-answer_container" class="shiny-html-output"></div>
+<div id="quiz2-1-message_container" class="shiny-html-output"></div>
+<div id="quiz2-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div></p>
+<ol start="3" style="list-style-type: decimal">
+<li>Change the distribution to <code>Skewed</code>. How big does <span class="math inline">\(n\)</span> have to be before sample means follow a Normal distribution? Generate 10,000 samples for different sample sizes.</li>
+</ol>
+<p><div class="panel-heading tutorial-quiz-title"></div><div class="panel panel-default">
+<div data-label="quiz3-1" class="tutorial-question panel-body">
+<div id="quiz3-1-answer_container" class="shiny-html-output"></div>
+<div id="quiz3-1-message_container" class="shiny-html-output"></div>
+<div id="quiz3-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div></p>
+</div>
+<div id="section-section-3" class="section level3">
+<h3><a href=""></a></h3>
+<p><img src="images/clt_skew.gif" style="width:90.0%" /></p>
+</div>
+<div id="section-section-4" class="section level3">
+<h3><a href=""></a></h3>
+<ol start="4" style="list-style-type: decimal">
+<li>Change the distribution to <code>Custom</code>. Can you “break” the Central Limit Theorem by creating a weird enough custom distribution?</li>
+</ol>
+<p><div class="panel-heading tutorial-quiz-title"></div><div class="panel panel-default">
+<div data-label="quiz4-1" class="tutorial-question panel-body">
+<div id="quiz4-1-answer_container" class="shiny-html-output"></div>
+<div id="quiz4-1-message_container" class="shiny-html-output"></div>
+<div id="quiz4-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div></p>
+</div>
+<div id="section-section-5" class="section level3">
+<h3><a href=""></a></h3>
+<p><img src="images/clt2.gif" style="width:90.0%" /></p>
+</div>
+<div id="section-conditions" class="section level3">
+<h3>Conditions</h3>
+<p>There are a few conditions that need to be met for the CLT to work with on sample means.</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Independent observations:</strong> Just to ensure that individual cases don’t influence the results of each other. This is always an assumption we need in statistics.</p></li>
+<li><p><strong>Nearly Normal/Sample Size:</strong> In order to ensure the sampling distribution is Normal, it’s better if the population distribution is close to normal (or at least not extremely skewed). But even if it is skewed, a large enough sample (<span class="math inline">\(n\ge30\)</span>) will be enough to get the CLT to work (for extremely skewed data, we may need <span class="math inline">\(n\ge60\)</span>, which is still not that much in most cases).</p></li>
+</ol>
+</div>
+<div id="section-section-6" class="section level3">
+<h3><a href=""></a></h3>
+<p>What we’ve shown is that the CLT works for sample means, as well as sample proportions. And just like for proportions, we know <em>exactly</em> what the distribution of sample means will be, if the sample is large enough.</p>
+<p>Maybe you noticed in the applet, but every time you generated a sampling distribution, the mean of that distribution was <strong>the same as the population mean!</strong> So the center of the sampling distribution of a bunch of means is the same as the population parameter….this could be useful.</p>
+</div>
+<div id="section-section-7" class="section level3">
+<h3><a href=""></a></h3>
+<p><img src="images/CLTmeans.png" style="width:80.0%" /></p>
+</div>
+<div id="section-section-8" class="section level3">
+<h3><a href=""></a></h3>
+<p><div class="panel-heading tutorial-quiz-title"></div><div class="panel panel-default">
+<div data-label="quiz5-1" class="tutorial-question panel-body">
+<div id="quiz5-1-answer_container" class="shiny-html-output"></div>
+<div id="quiz5-1-message_container" class="shiny-html-output"></div>
+<div id="quiz5-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div></p>
+</div>
+<div id="section-section-9" class="section level3">
+<h3><a href=""></a></h3>
+<blockquote>
+<p>But can we calculate the spread from the sampling distribution?</p>
+</blockquote>
+<p>Yes! Remember, this is what the standard error represents - the variation of statistics from sample to sample.</p>
+<blockquote>
+<p>The <font color='blue'><strong>Standard Error</strong> for <span class="math inline">\(\bar{x}\)</span></font> is</p>
+</blockquote>
+<p><font color='blue'><strong><span class="math display">\[SE_{\bar{x}}=\frac{s}{\sqrt{n}}\]</span></strong></font></p>
+<p>Where <span class="math inline">\(s\)</span> is the sample standard deviation. There’s just one problem, when we use <span class="math inline">\(s\)</span> we are adding another sample statistic that has its own variation (it changes from sample to sample too). That means there is more uncertainty in our Standard Error and the <strong>Normal distribution is no longer accurate for small samples.</strong></p>
+<p>We need a new distribution for when we have small samples.</p>
+</div>
+</div>
+<div id="section-the-t-distribution" class="section level2">
+<h2>The <span class="math inline">\(t-\)</span>Distribution</h2>
+<div id="section-to-the-rescue" class="section level3">
+<h3>To the rescue!</h3>
+<p>Remember, it’s important to be able to accurately define the sampling distribution for <span class="math inline">\(\bar{x}\)</span> for Confidence Intervals (so we know where the middle XX% falls) and Hypothesis Tests (so we know when a sample is unusual). If using sample standard deviation <span class="math inline">\(s\)</span> in the calculation of standard error results in more uncertainty, we need to account for that.</p>
+<p>Thankfully, there isn’t <em>a lot</em> of extra uncertainty. In fact, the sampling distribution is still symmetric and unimodal, it just has “thicker” tails and is spread out a little more.</p>
+<p>We use the <span class="math inline">\(t-\)</span>distribution rather than the Normal for sample means because of this.</p>
+</div>
+<div id="section-section-10" class="section level3">
+<h3><a href=""></a></h3>
+<p><img src="images/tdist.png" style="width:90.0%" /></p>
+<p> </p>
+<p>As you can see, the <span class="math inline">\(t-\)</span>distribution is just a little more spread out. This means that we see more observations outside of 2 standard errors away from the mean.</p>
+</div>
+<div id="section-it-is-adjustable" class="section level3">
+<h3>It is adjustable</h3>
+<p>What about the fact that the larger the sample size, the better our estimate for standard error? Meaning, there will be less uncertainty if we have a large sample.</p>
+<p>The <span class="math inline">\(t-\)</span>distribution has you covered, because it has one parameter called <strong>degrees of freedom (df)</strong>. The degrees of freedom changes the thickness of the tail. When using the <span class="math inline">\(t-\)</span>distribution for a single sample mean, <strong><span class="math inline">\(df=n-1\)</span></strong>.</p>
+<p><img src="images/t_df.gif" style="width:85.0%" /></p>
+<p><div class="panel-heading tutorial-quiz-title"></div><div class="panel panel-default">
+<div data-label="quiz6-1" class="tutorial-question panel-body">
+<div id="quiz6-1-answer_container" class="shiny-html-output"></div>
+<div id="quiz6-1-message_container" class="shiny-html-output"></div>
+<div id="quiz6-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div></p>
+</div>
+<div id="section-section-11" class="section level3">
+<h3><a href=""></a></h3>
+<p>This means that as the sample size increases, the <span class="math inline">\(t-\)</span>distribution will be approximately the same as the Normal distribution anyways!</p>
+<blockquote>
+<p>When performing inference for means, <strong>always use the <span class="math inline">\(t-\)</span>distribution</strong>. It is more accurate for small samples and works just as well as the Normal distribution for large samples.</p>
+</blockquote>
+</div>
+<div id="section-no-tables" class="section level3">
+<h3>No Tables!</h3>
+<p>Don’t worry about reading tables for the <span class="math inline">\(t-\)</span>distribution. The textbook covers this, but we will just use R to calculate the critical values and p-values.</p>
+</div>
+</div>
+<div id="section-confidence-intervals-for-a-single-mean" class="section level2">
+<h2>Confidence Intervals for a Single Mean</h2>
+<div id="section-section-12" class="section level3">
+<h3><a href=""></a></h3>
+<p>Now, with an understanding of the sampling distribution for <span class="math inline">\(\bar{x}\)</span>, we can perform our inference on population means (<span class="math inline">\(\mu\)</span>). Remember that when we want to estimate a parameter, we use a <strong>Confidence Interval</strong>. And for estimating a single mean, the three parts of the confidence interval are:</p>
+<ul>
+<li><p><font color='red'><strong>Point Estimate</strong></font> = <span class="math inline">\(\bar{x}\)</span></p></li>
+<li><p><font color='orange'><strong>Critical Value</strong></font> = <span class="math inline">\(t^*_{df=n-1}\)</span></p></li>
+<li><p><font color='blue'><strong>Standard Error</strong></font> = <span class="math inline">\(SE_{\bar{x}}=\frac{s}{\sqrt{n}}\)</span></p></li>
+</ul>
+<blockquote>
+<p>The confidence interval for estimating <span class="math inline">\(\mu\)</span> is:</p>
+</blockquote>
+<p><span class="math display">\[\bar{x}\pm t^*_{df=n-1}\times \frac{s}{\sqrt{n}}\]</span></p>
+</div>
+<div id="section-finding-the-critical-value-in-the-t-distribution" class="section level3">
+<h3>Finding the critical value in the <span class="math inline">\(t-\)</span>distribution</h3>
+<p>Most of the pieces in the confidence interval can be obtained through regular summary statistics. But we need to be able to find the critical value based on the <span class="math inline">\(t-\)</span>distribution. Luckily, this can be done in R just like we would do it for proportions (when we used <span class="math inline">\(z^*\)</span>).</p>
+<p>Remember that when we want a certain percentage of confidence, say 90%, we are looking for the <span class="math inline">\(middle\)</span> 90% in the sampling distribution. So in terms of our percentiles, finding the 5th and 95th would give us cutoffs for the middle 90%. Using <code>xqt()</code> in the <code>mosaic</code> package will do this for us. To use this function, we need to include the proportions we want in the lower tail, and the degrees of freedom for the <span class="math inline">\(t-\)</span>distribution.</p>
+<p>For example, if we wanted the critical value for a 90% confidence interval from a sample with <span class="math inline">\(n=20\)</span> (so <span class="math inline">\(df=n-1=19\)</span>):</p>
+<div class="tutorial-exercise" data-label="cv_check" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
+<pre class="text"><code>## Make sure to load the mosaic package when you use this function
+## It&#39;s already loaded for you here
+xqt(c(0.05, 0.95), df = 19)</code></pre>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":"NULL"}</script>
+</div>
+<p><div class="panel-heading tutorial-quiz-title">Alter the code above to find the critical values in the following situations:</div><div class="panel panel-default">
+<div data-label="cv_t_quiz-1" class="tutorial-question panel-body">
+<div id="cv_t_quiz-1-answer_container" class="shiny-html-output"></div>
+<div id="cv_t_quiz-1-message_container" class="shiny-html-output"></div>
+<div id="cv_t_quiz-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div><div class="panel panel-default">
+<div data-label="cv_t_quiz-2" class="tutorial-question panel-body">
+<div id="cv_t_quiz-2-answer_container" class="shiny-html-output"></div>
+<div id="cv_t_quiz-2-message_container" class="shiny-html-output"></div>
+<div id="cv_t_quiz-2-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div><div class="panel panel-default">
+<div data-label="cv_t_quiz-3" class="tutorial-question panel-body">
+<div id="cv_t_quiz-3-answer_container" class="shiny-html-output"></div>
+<div id="cv_t_quiz-3-message_container" class="shiny-html-output"></div>
+<div id="cv_t_quiz-3-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div><div class="panel panel-default">
+<div data-label="cv_t_quiz-4" class="tutorial-question panel-body">
+<div id="cv_t_quiz-4-answer_container" class="shiny-html-output"></div>
+<div id="cv_t_quiz-4-message_container" class="shiny-html-output"></div>
+<div id="cv_t_quiz-4-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div></p>
+</div>
+<div id="section-a-quick-example" class="section level3">
+<h3>A quick example</h3>
+<p>A new physical therapy technique is being studied to determine how long it takes to recover from knee ligament replacement surgery. A random sample of 79 patients who recently had the procedure done found that the average recovery time using the new physical therapy was 78.4 days, with a standard deviation of 8.2 days. Provide an estimate with 95% confidence for the average recovery time of all patients using the new physical therapy technique.</p>
+</div>
+<div id="section-section-13" class="section level3">
+<h3><a href=""></a></h3>
+<p>First, this is the information you should take away from reading the problem:</p>
+<ul>
+<li><p>There is a single, numeric measurement variable, recovery time (in days)</p></li>
+<li><p>The sample size is <span class="math inline">\(n=79\)</span> patients</p></li>
+<li><p>The sample mean is <span class="math inline">\(\bar{x}=78.4\)</span> days</p></li>
+<li><p>The sample standard deviation is <span class="math inline">\(s=8.2\)</span> days</p></li>
+<li><p>We want to estimate the TRUE mean recovery time, <span class="math inline">\(\mu\)</span>, with a 95% confidence interval</p></li>
+</ul>
+</div>
+<div id="section-check-conditions" class="section level3">
+<h3>Check conditions</h3>
+<ol style="list-style-type: decimal">
+<li><p><strong>Independent observations:</strong> Since the patients were selected randomly, it is probably safe to assume they won’t have any influence on each others’ recovery time.</p></li>
+<li><p><strong>Nearly Normal/Sample size:</strong> The biggest thing to check for here is when we have small samples (<span class="math inline">\(n&lt;30\)</span>) are the data extremely skewed? I didn’t give you the raw data, but we know the sample is large enough to just use the <span class="math inline">\(t-\)</span>distribution and not need to worry much. This is the beauty of the CLT and knowing how samples will behave will just a handful of observations!</p></li>
+</ol>
+</div>
+<div id="section-calculate-the-pieces" class="section level3">
+<h3>Calculate the pieces</h3>
+<ul>
+<li><p><font color='red'><strong>Point Estimate</strong></font> = <span class="math inline">\(\bar{x}=78.4\)</span></p></li>
+<li><p><font color='orange'><strong>Critical Value</strong></font> = <span class="math inline">\(t^*_{df=78}=1.99\)</span></p></li>
+</ul>
+<pre class="r"><code>xqt(c(0.025, 0.975), df = 78)</code></pre>
+<p><img src="onemean_and_t_files/figure-html/unnamed-chunk-1-1.png" width="624" /></p>
+<pre><code>## [1] -1.990847  1.990847</code></pre>
+<ul>
+<li><font color='blue'><strong>Standard Error</strong></font> = <span class="math inline">\(SE_{\bar{x}}=\frac{8.2}{\sqrt{79}}=0.92\)</span></li>
+</ul>
+<pre class="r"><code>8.2/sqrt(79)</code></pre>
+<pre><code>## [1] 0.9225721</code></pre>
+</div>
+<div id="section-put-it-all-together" class="section level3">
+<h3>Put it all together</h3>
+<p><span class="math display">\[78.4\pm1.99\times0.92\]</span></p>
+</div>
+<div id="section-section-14" class="section level3">
+<h3><a href=""></a></h3>
+<p><span class="math display">\[78.4\pm1.83\]</span> (1.83 is the margin of error)</p>
+</div>
+<div id="section-section-15" class="section level3">
+<h3><a href=""></a></h3>
+<p><span class="math display">\[[76.57, 80.23]\]</span></p>
+</div>
+<div id="section-interpret-in-context" class="section level3">
+<h3>Interpret in context</h3>
+<p>We’re 95% confident that the true mean recovery time from knee ligament replacement surgery with this new physical therapy technique is between 76.57 and 80.23 days. (It would be fine to say between 76 and 81 days, since we typically don’t count fractional days)</p>
+</div>
+</div>
+<div id="section-hypothesis-tests-for-a-single-mean" class="section level2">
+<h2>Hypothesis Tests for a Single Mean</h2>
+<div id="section-section-16" class="section level3">
+<h3><a href=""></a></h3>
+<p>Hypothesis testing is also very similar to what we have done in the past (for the theoretical approach). We need to follow the same steps as before:</p>
+<ol style="list-style-type: decimal">
+<li><p>State the null and alternative hypotheses in the context of the problem, and using symbols.</p></li>
+<li><p>Collect/access the data and check any conditions that need to be met.</p></li>
+<li><p>Calculate a test statistic and p-value to measure the strength of evidence against the null hypothesis.</p></li>
+<li><p>Make a decision and state a conclusion in the context of the problem.</p></li>
+</ol>
+</div>
+<div id="section-hypotheses" class="section level3">
+<h3>Hypotheses</h3>
+<p>The hypotheses for testing a single mean will always involve a reference mean or <em>null value</em>. This could be a value based on previous research, last year’s numbers, or just a guess for what the population mean might actually be.</p>
+<p>Since we are testing for a population mean, we want to use <span class="math inline">\(\mu\)</span>.</p>
+</div>
+<div id="section-example-continued" class="section level3">
+<h3>Example continued</h3>
+<p>Suppose the researchers from our physical therapy study wanted to know if their technique has a significantly different mean recovery time than 85 days, which is the current mean recovery time for these surgeries. We can define the population mean as <span class="math inline">\(\mu:\)</span> the true mean recovery time for ALL knee ligament replacement patients who use the new technique.</p>
+<blockquote>
+<p><span class="math inline">\(H_0: \mu = 85\)</span>, the true mean recovery time for the new technique is 85 days, same as for the old techniques.</p>
+</blockquote>
+<blockquote>
+<p><span class="math inline">\(H_a: \mu \ne 85\)</span>, the true mean recovery time for the new technique is significantly different than the old techniques.</p>
+</blockquote>
+</div>
+<div id="section-get-data-and-check-conditions" class="section level3">
+<h3>Get data and check conditions</h3>
+<p>Ideally, in a real world setting, we would set up our hypotheses first and then collect the data (this is to avoid any sort of bias when thinking of the hypotheses). But often as a statistician, we get the data first and then need to test for patterns or relationships. Recall from the previous example:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left"><span class="math inline">\(n\)</span></th>
+<th align="left"><span class="math inline">\(\bar{x}\)</span></th>
+<th align="left"><span class="math inline">\(s\)</span></th>
+<th align="left"><span class="math inline">\(SE_{\bar{x}}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">79</td>
+<td align="left">78.4</td>
+<td align="left">8.2</td>
+<td align="left">0.92</td>
+</tr>
+</tbody>
+</table>
+<p>Once again, we just want to make sure that each observation is independent from the others. And for small samples, we want to avoid data that is extremely skewed.</p>
+<p>These are the same conditions as for the confidence interval, so in our example we are still good.</p>
+</div>
+<div id="section-calculate-the-test-statistic" class="section level3">
+<h3>Calculate the test statistic</h3>
+<p>It’s all about how unusual is our sample under the assumption that the null hypothesis is true. Whenever we want to know how unusual something is, we turn to the <strong>test statistic</strong>. In this case, we are using a <span class="math inline">\(t-\)</span>distribution, so we want to know where does our sample land on the distribution in relation to the null (center). The test statistic is essentially a z-score:</p>
+<p><span class="math display">\[\text{test statistic: }t=\frac{\text{point estimate}-\text{null value}}{\text{standard error}}\]</span></p>
+<p>So, if the real mean recovery time for the new technique is the same as the old one, 85 days. Then our sample from 79 patients with a mean of 74.2 days has a test statistic of:</p>
+<p><span class="math display">\[t=\frac{74.2-85}{0.92}=-11.74\]</span></p>
+</div>
+<div id="section-calculate-the-p-value" class="section level3">
+<h3>Calculate the p-value</h3>
+<p>The <span class="math inline">\(t-\)</span>distribution isn’t <em>quite</em> the same as a Normal distribution, but it’s really close. So imagine getting a z-score of -11.74. Would that seem unusual? On a <span class="math inline">\(t-\)</span>distribution it would also be very unlikely to get a sample that is almost <strong>12 standard errors below the mean</strong>.</p>
+<p>The p-value will tell us exactly how unlikely our observed sample is under the null hypothesis. We just need to find the area “more extreme” than -11.74 on a <span class="math inline">\(t-\)</span>distribution with <span class="math inline">\(df=n-1=78\)</span>. The <code>xpt()</code> function will do just that.</p>
+<div class="tutorial-exercise" data-label="pval" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
+<pre class="text"><code>xpt(-11.74, df = 78, lower.tail = TRUE)</code></pre>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":"NULL"}</script>
+</div>
+</div>
+<div id="section-section-17" class="section level3">
+<h3><a href=""></a></h3>
+<p>If this was a one-tailed test, we would have our p-value right now. But since this is a two-tailed test, we need to consider “more extreme” on the other end, or greater than 11.74. Thankfully, because the distribution is symmetric, we can simply multiply the value above by 2.</p>
+<p>In our example, a really, really, small number times 2 is still a really, really small number.</p>
+</div>
+<div id="section-interpret-the-p-value-in-context" class="section level3">
+<h3>Interpret the p-value in context</h3>
+<p>Our p-value is off the charts! -11.74 is so far away from the center of 0, it isn’t even shown. And the probability of getting a mean of 74.2 days (or more extreme) in a sample of 79 patients if the true average is 85, would be 0 (0.000000000000000006% actually, basically impossible).</p>
+</div>
+<div id="section-make-decision-and-state-conclusion-in-context" class="section level3">
+<h3>Make decision and state conclusion in context</h3>
+<p>Using the p-value from above, we can see that it is extremely unlikely to observe our sample mean of 74.2 days if the true mean recovery time is the same as the old techniques, 85 days. So, based on our very small p-value, we’ve shown that our sample is <strong>strong evidence against the null hypothesis</strong>. We can reject the idea that the new technique is only as good as the old ones in favor of saying the new technique will lead to <em>significantly</em> faster recovery times on average.</p>
+</div>
+<div id="section-section-18" class="section level3">
+<h3><a href=""></a></h3>
+<p>Notice that we rejected the null hypothesis of an 85 day mean recovery time AND the 95% confidence interval, [76.57, 80.23], did not contain 85. This is not a coincidence. In our interval, we essentially claimed that 85 days was not a reasonable estimate for <span class="math inline">\(\mu\)</span> since it’s not in the interval. The two-tailed hypothesis test gave us the same conclusion by quantifying how unusual our sample would be under that assumption of <span class="math inline">\(\mu=85\)</span> days.</p>
+</div>
+</div>
+<div id="section-an-example-with-r-code" class="section level2">
+<h2>An Example with R code</h2>
+<div id="section-data-context" class="section level3">
+<h3>Data Context</h3>
+<p>Researchers at Ohio State University performed a study on how much students drink at parties and what blood alcohol content levels they have. They randomly sampled 16 students at parties over the course of several weeks. The researchers wanted to estimate the average BAC of students at campus parties as well as determine if it was significantly higher or lower than the legal limit in Ohio, which is 8%. The dataset <code>bac</code> is provided below.</p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Student"],"name":[1],"type":["int"],"align":["right"]},{"label":["Beers"],"name":[2],"type":["int"],"align":["right"]},{"label":["BAC"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"5","3":"0.100"},{"1":"2","2":"2","3":"0.030"},{"1":"3","2":"9","3":"0.190"},{"1":"4","2":"8","3":"0.120"},{"1":"5","2":"3","3":"0.040"},{"1":"6","2":"7","3":"0.095"},{"1":"7","2":"3","3":"0.070"},{"1":"8","2":"5","3":"0.060"},{"1":"9","2":"3","3":"0.020"},{"1":"10","2":"5","3":"0.050"},{"1":"11","2":"4","3":"0.070"},{"1":"12","2":"6","3":"0.100"},{"1":"13","2":"5","3":"0.085"},{"1":"14","2":"7","3":"0.090"},{"1":"15","2":"1","3":"0.010"},{"1":"16","2":"4","3":"0.050"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<div id="section-section-19" class="section level3">
+<h3><a href=""></a></h3>
+<p>So we want both a confidence interval to estimate the true mean BAC of students, and also to test whether that mean is greater than 8% (or 0.08). Let’s set up the hypotheses for the test first.</p>
+<p><div class="panel-heading tutorial-quiz-title"></div><div class="panel panel-default">
+<div data-label="ex_quiz-1" class="tutorial-question panel-body">
+<div id="ex_quiz-1-answer_container" class="shiny-html-output"></div>
+<div id="ex_quiz-1-message_container" class="shiny-html-output"></div>
+<div id="ex_quiz-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div></p>
+</div>
+<div id="section-what-about-the-conditions" class="section level3">
+<h3>What about the conditions?</h3>
+<p><img src="onemean_and_t_files/figure-html/unnamed-chunk-4-1.png" width="624" /></p>
+<p><div class="panel-heading tutorial-quiz-title"></div><div class="panel panel-default">
+<div data-label="cond_quiz-1" class="tutorial-question panel-body">
+<div id="cond_quiz-1-answer_container" class="shiny-html-output"></div>
+<div id="cond_quiz-1-message_container" class="shiny-html-output"></div>
+<div id="cond_quiz-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div><div class="panel panel-default">
+<div data-label="cond_quiz-2" class="tutorial-question panel-body">
+<div id="cond_quiz-2-answer_container" class="shiny-html-output"></div>
+<div id="cond_quiz-2-message_container" class="shiny-html-output"></div>
+<div id="cond_quiz-2-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div></p>
+</div>
+<div id="section-raw-data" class="section level3">
+<h3>Raw data</h3>
+<p>This tutorial so far has focused on how to calculate confidence intervals and perform hypothesis tests when we have a summary of sample data. What should we do if we have the raw data? As you may imagine, R has nice built-in functions to handle such situations. We can use the <code>t.test()</code> function to perform both hypothesis tests and to calculate confidence intervals.</p>
+<p><em>I ask you to do it both using the formulas (like the last examples) and in R for the homework.</em></p>
+<blockquote>
+<p><code>t.test(x, conf.level, mu, alternative)</code></p>
+</blockquote>
+<table>
+<colgroup>
+<col width="17%" />
+<col width="51%" />
+<col width="30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Argument</th>
+<th align="left">Purpose</th>
+<th align="left">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>x</code></td>
+<td align="left">the data in raw form (no summaries)</td>
+<td align="left">no default</td>
+</tr>
+<tr class="even">
+<td align="left"><code>conf.level</code></td>
+<td align="left">the confidence you would like for your interval as a proportion <code>[0.0 to 1.0]</code></td>
+<td align="left"><code>conf.level = 0.95</code></td>
+</tr>
+<tr class="odd">
+<td align="left"><code>mu</code></td>
+<td align="left">the null value for hypothesis tests</td>
+<td align="left"><code>mu = 0</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>alternative</code></td>
+<td align="left">the type of test you’d like to run <code>(&quot;two.sided&quot;, &quot;less&quot;, or &quot;greater&quot;)</code></td>
+<td align="left"><code>alternative = &quot;two.sided&quot;</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="section-section-20" class="section level3">
+<h3><a href=""></a></h3>
+<p>Let’s do both the confidence interval (we can just use 95%) and the hypothesis test at once with <code>t.test</code>.</p>
+<p>Note: I have to use the <em>variable</em> <code>BAC</code> with the <em>dataset</em> <code>bac</code> as: <code>bac$BAC</code> (hopefully that’s not too confusing)</p>
+<div class="tutorial-exercise" data-label="ex_code" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
+<pre class="text"><code>t.test(bac$BAC, conf.level = 0.95, mu = 0.08, alternative = &quot;two.sided&quot;)</code></pre>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":"NULL"}</script>
+</div>
+</div>
+<div id="section-interpretation-of-the-output" class="section level3">
+<h3>Interpretation of the output</h3>
+<p>These are some of the things we get from the function:</p>
+<ul>
+<li><p>Test statistic: <code>t = -0.566</code></p></li>
+<li><p>p-value: <code>p-value = 0.5795</code></p></li>
+<li><p>95% Confidence Interval: <code>0.050  0.097</code></p></li>
+<li><p>Sample mean: <code>mean of x = 0.074</code></p></li>
+</ul>
+</div>
+<div id="section-section-21" class="section level3">
+<h3><a href=""></a></h3>
+<p>So our test statistic looks to be very close to 0, meaning our sample probably isn’t too unusual if we assume the average BAC is 0.08. And the p-value tells us that under that assumption, we would expect to get a sample mean from 16 students of 0.074 BAC or farther from 0.08 almost 58% of the time. That seems like we just sampled a typical group of student partiers if the mean really is 0.08. This is not enough evidence to reject the null hypothesis. We can’t say that the students are significantly above or below the state legal limit in Ohio.</p>
+</div>
+<div id="section-section-22" class="section level3">
+<h3><a href=""></a></h3>
+<p>The confidence interval suggests that we are 95% confident the true mean BAC in students who party on campus is between 0.05 and 0.097. Since the legal limit, 0.08, falls within this interval it is a plausible value for the population mean BAC.</p>
+</div>
+<div id="section-double-check" class="section level3">
+<h3>Double check</h3>
+<p>Perform your own calculations using the formulas from earlier and the summary statistics below. You can use the R code box for basic calculations and to use <code>xqt()</code> for finding the critical value and <code>xpt()</code> to find the p-value.</p>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["min"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Q1"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["median"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Q3"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["max"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["mean"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["sd"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[8],"type":["int"],"align":["right"]},{"label":["missing"],"name":[9],"type":["int"],"align":["right"]}],"data":[{"1":"0.01","2":"0.0475","3":"0.07","4":"0.09625","5":"0.19","6":"0.07375","7":"0.04413993","8":"16","9":"0","_rn_":""}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<div class="tutorial-exercise" data-label="check" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":"NULL"}</script>
+</div>
+</div>
+<div id="section-answers" class="section level3">
+<h3>Answers</h3>
+<pre class="r"><code>xbar &lt;- 0.0737
+
+s &lt;- 0.044
+
+n &lt;- 16
+
+SE &lt;- s / sqrt(n)
+
+t_star &lt;- xqt(c(0.025, 0.975), df = 15)</code></pre>
+<p><img src="onemean_and_t_files/figure-html/unnamed-chunk-6-1.png" width="624" /></p>
+<pre class="r"><code>## 95% Confidence Interval
+xbar + t_star * SE</code></pre>
+<pre><code>## [1] 0.05025405 0.09714595</code></pre>
+<pre class="r"><code>## Test statistic
+test_stat &lt;- (xbar - 0.08) / SE
+test_stat</code></pre>
+<pre><code>## [1] -0.5727273</code></pre>
+<pre class="r"><code>## p-value (remember to multiply by 2 for the two sided test)
+2*xpt(test_stat, df = 15)</code></pre>
+<p><img src="onemean_and_t_files/figure-html/unnamed-chunk-6-2.png" width="624" /></p>
+<pre><code>## [1] 0.5753145</code></pre>
+</div>
+</div>
+<div id="section-updated-eda-and-analysis-guide" class="section level2">
+<h2>Updated EDA and Analysis Guide</h2>
+<p><img src="images/update_guide_t.gif" /></p>
+<div id="section-section-23" class="section level3">
+<h3><a href=""></a></h3>
+<p> </p>
+<p><img src="images/mucow.jpg" style="width:90.0%" /></p>
+
+<script type="application/shiny-prerendered" data-context="server-start">
+library(learnr)
+library(mosaic)
+library(openintro)
+knitr::opts_chunk$set(echo = FALSE)
+
+#temp_anomolies <- read.csv("https://raw.githubusercontent.com/joeroith/Data/master/temp_anomolies.csv")
+data("bac")
+
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::register_http_handlers(session, metadata = NULL)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+session$onSessionEnded(function() {
+        learnr:::session_stop_event(session)
+      })
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-1", question = structure("I&#39;d expect the distribution of sample means to be:", html = TRUE, class = c("html", "character")), answers = list(structure(list(id = "lnr_ans_66109fa",     option = "Normal Distribution", value = "Normal Distribution",     label = structure("Normal Distribution", html = TRUE, class = c("html",     "character")), correct = TRUE, message = structure("If the population is normal, it&#39;s easy to expect the distribution of sample means to be normal!", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_7c230e0", option = "$\\chi^2$ Distribution",     value = "$\\chi^2$ Distribution", label = structure("\\(\\chi^2\\) Distribution", html = TRUE, class = c("html",     "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_5588961",     option = "Binomial Distribution", value = "Binomial Distribution",     label = structure("Binomial Distribution", html = TRUE, class = c("html",     "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_6641e75",     option = "Exponential Distribution", value = "Exponential Distribution",     label = structure("Exponential Distribution", html = TRUE, class = c("html",     "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_9d885de",     option = "Impossible to tell", value = "Impossible to tell",     label = structure("Impossible to tell", html = TRUE, class = c("html",     "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html", "character")), try_again = structure("Try Again", html = TRUE, class = c("html", "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", "character")), message = NULL, post_message = NULL), ids = list(    answer = "quiz1-1-answer", question = "quiz1-1"), loading = structure("<strong>Loading:<\u002fstrong> \nI&#39;d expect the distribution of sample means to be:\n<br/><br/><br/>", html = TRUE, class = c("html", "character")), random_answer_order = TRUE, allow_retry = TRUE,     seed = 75320085.9649263, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-2", question = structure("Generate 10,000 sample means in the applet, is the distribution what you expected in the previous question?", html = TRUE, class = c("html", "character")), answers = list(structure(list(id = "lnr_ans_cd7b380",     option = "Yes", value = "Yes", label = structure("Yes", html = TRUE, class = c("html",     "character")), correct = TRUE, message = structure("It should be a nice, neat, Normal distribution", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_615d447", option = "No", value = "No",     label = structure("No", html = TRUE, class = c("html", "character"    )), correct = FALSE, message = structure("Did you get a Normal distribution? Make sure sample size is set to n = 25.", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html", "character")), try_again = structure("Try Again", html = TRUE, class = c("html", "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", "character")), message = NULL, post_message = NULL), ids = list(    answer = "quiz1-2-answer", question = "quiz1-2"), loading = structure("<strong>Loading:<\u002fstrong> \nGenerate 10,000 sample means in the applet, is the distribution what you expected in the previous question?\n<br/><br/><br/>", html = TRUE, class = c("html", "character")), random_answer_order = FALSE, allow_retry = TRUE,     seed = 940002583.062277, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz2-1", question = structure("How big does \\(n\\) have to be for the means to be Normal?", html = TRUE, class = c("html", "character")), answers = list(structure(list(id = "lnr_ans_16100a1",     option = "At least $n=2$", value = "At least $n=2$", label = structure("At least \\(n=2\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("The distribution is more of a pyramid than a Normal distribution, but it is already pretty close.", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_2b9852c", option = "At least $n=5$",     value = "At least $n=5$", label = structure("At least \\(n=5\\)", html = TRUE, class = c("html",     "character")), correct = TRUE, message = structure("It doesn&#39;t take a very large sample for the CLT to produce means that follow a Normal distribution.", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_5c0e422", option = "At least $n=10$",     value = "At least $n=10$", label = structure("At least \\(n=10\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("It is Normal at this sample size, but is it also Normal for smaller sizes?", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e98f0da", option = "At least $n=16$",     value = "At least $n=16$", label = structure("At least \\(n=16\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("It is Normal at this sample size, but is it also Normal for smaller sizes?", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_3b869fa", option = "At least $n=20$",     value = "At least $n=20$", label = structure("At least \\(n=20\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("It is Normal at this sample size, but is it also Normal for smaller sizes?", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_242e530", option = "At least $n=25$",     value = "At least $n=25$", label = structure("At least \\(n=25\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("It is Normal at this sample size, but is it also Normal for smaller sizes?", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html", "character")), try_again = structure("Try Again", html = TRUE, class = c("html", "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", "character")), message = NULL, post_message = NULL), ids = list(    answer = "quiz2-1-answer", question = "quiz2-1"), loading = structure("<strong>Loading:<\u002fstrong> \nHow big does \\(n\\) have to be for the means to be Normal?\n<br/><br/><br/>", html = TRUE, class = c("html", "character")), random_answer_order = FALSE, allow_retry = TRUE,     seed = 1611936495.74938, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz3-1", question = structure("How big does \\(n\\) have to be for the means to be Normal?", html = TRUE, class = c("html", "character")), answers = list(structure(list(id = "lnr_ans_d3498ee",     option = "At least $n=2$", value = "At least $n=2$", label = structure("At least \\(n=2\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("The distribution is still a little skewed", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e35b424", option = "At least $n=5$",     value = "At least $n=5$", label = structure("At least \\(n=5\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("The distribution is still a little skewed, but it&#39;s closer to Normal", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_bc66c39", option = "At least $n=10$",     value = "At least $n=10$", label = structure("At least \\(n=10\\)", html = TRUE, class = c("html",     "character")), correct = TRUE, message = structure("The distribution is already fairly Normal at \\(n=10\\)", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_4df396c", option = "At least $n=16$",     value = "At least $n=16$", label = structure("At least \\(n=16\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("It is Normal at this sample size, but is it also Normal for smaller sizes?", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_5c87bc3", option = "At least $n=20$",     value = "At least $n=20$", label = structure("At least \\(n=20\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("It is Normal at this sample size, but is it also Normal for smaller sizes?", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_d6bf69c", option = "At least $n=25$",     value = "At least $n=25$", label = structure("At least \\(n=25\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("It is Normal at this sample size, but is it also Normal for smaller sizes?", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html", "character")), try_again = structure("Try Again", html = TRUE, class = c("html", "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", "character")), message = NULL, post_message = NULL), ids = list(    answer = "quiz3-1-answer", question = "quiz3-1"), loading = structure("<strong>Loading:<\u002fstrong> \nHow big does \\(n\\) have to be for the means to be Normal?\n<br/><br/><br/>", html = TRUE, class = c("html", "character")), random_answer_order = FALSE, allow_retry = TRUE,     seed = 1870418436.62902, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz4-1", question = structure("Can you create a custom distribution where the sample means do not form a Normal distribution when you generate 10,000 samples for \\(n=25\\)?", html = TRUE, class = c("html", "character")), answers = list(structure(list(id = "lnr_ans_1308ea3",     option = "Yes", value = "Yes", label = structure("Yes", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("No, you didn&#39;t. I don&#39;t believe you!", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_2770da5", option = "No", value = "No",     label = structure("No", html = TRUE, class = c("html", "character"    )), correct = TRUE, message = structure("As hard as you try, you can&#39;t make a population where the means aren&#39;t normally distributed for a sample of 25. This is why the CLT is great! It works for ANY distribution, so we don&#39;t even really care where the sample came from!", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html", "character")), try_again = structure("Try Again", html = TRUE, class = c("html", "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", "character")), message = NULL, post_message = NULL), ids = list(    answer = "quiz4-1-answer", question = "quiz4-1"), loading = structure("<strong>Loading:<\u002fstrong> \nCan you create a custom distribution where the sample means do not form a Normal distribution when you generate 10,000 samples for \\(n=25\\)?\n<br/><br/><br/>", html = TRUE, class = c("html", "character")), random_answer_order = FALSE, allow_retry = TRUE,     seed = 1497456995.30269, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz5-1", question = structure("How does the spread of the sampling distribution change as the sample size increases?", html = TRUE, class = c("html", "character")), answers = list(structure(list(id = "lnr_ans_acb9611",     option = "The spread decreases", value = "The spread decreases",     label = structure("The spread decreases", html = TRUE, class = c("html",     "character")), correct = TRUE, message = structure("Just like it did for proportions!", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_88cbf7c", option = "The spread increases",     value = "The spread increases", label = structure("The spread increases", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("Try to compare two different sample sizes at the same time and take a closer look.", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_a87963a", option = "The spread stays the same",     value = "The spread stays the same", label = structure("The spread stays the same", html = TRUE, class = c("html",     "character")), correct = FALSE, message = structure("Try to compare two different sample sizes at the same time and take a closer look.", html = TRUE, class = c("html",     "character"))), class = c("tutorial_question_answer", "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html", "character")), try_again = structure("Try Again", html = TRUE, class = c("html", "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", "character")), message = NULL, post_message = NULL), ids = list(    answer = "quiz5-1-answer", question = "quiz5-1"), loading = structure("<strong>Loading:<\u002fstrong> \nHow does the spread of the sampling distribution change as the sample size increases?\n<br/><br/><br/>", html = TRUE, class = c("html", "character")), random_answer_order = TRUE, allow_retry = TRUE,     seed = 612621376.714726, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz6-1", question = structure("What happens to the \\(t-\\) distribution as the degrees of freedom increase?", html = TRUE, class = c("html", "character")), answers = list(structure(list(id = "lnr_ans_4819d38",     option = "It looks more like the Normal distribution", value = "It looks more like the Normal distribution",     label = structure("It looks more like the Normal distribution", html = TRUE, class = c("html",     "character")), correct = TRUE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e80090a",     option = "It looks less like the Normal Distribution", value = "It looks less like the Normal Distribution",     label = structure("It looks less like the Normal Distribution", html = TRUE, class = c("html",     "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_452ae00",     option = "It doesn't change at all", value = "It doesn't change at all",     label = structure("It doesn&#39;t change at all", html = TRUE, class = c("html",     "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html", "character")), try_again = structure("Try Again", html = TRUE, class = c("html", "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", "character")), message = NULL, post_message = NULL), ids = list(    answer = "quiz6-1-answer", question = "quiz6-1"), loading = structure("<strong>Loading:<\u002fstrong> \nWhat happens to the \\(t-\\) distribution as the degrees of freedom increase?\n<br/><br/><br/>", html = TRUE, class = c("html", "character")), random_answer_order = TRUE, allow_retry = TRUE,     seed = 522935166.756489, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-cv_check-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-cv_check-code-editor`)), session)
+output$`tutorial-exercise-cv_check-output` <- renderUI({
+  `tutorial-exercise-cv_check-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "cv_t_quiz-1",     question = structure("Find the critical value for a 95% CI from a sample with \\(n=15\\).", html = TRUE, class = c("html",     "character")), answers = list(structure(list(id = "lnr_ans_b7a8363",         option = "2.14", value = "2.14", label = structure("2.14", html = TRUE, class = c("html",         "character")), correct = TRUE, message = NULL), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_27f7946",         option = "1.96", value = "1.96", label = structure("1.96", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("This is the critical value for a Normal distribution, we can&#39;t use the Normal distribution here.", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_a10e6bc",         option = "1.76", value = "1.76", label = structure("1.76", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("Did you change the percentile cutoffs to <code>c(0.025, 0.975)<\u002fcode>?", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_57f2aca",         option = "2", value = "2", label = structure("2", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("Remember there is more uncertainty with the smaller sample so we need to go a little further than 2 SE away from the center to get 95%", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html",     "character")), try_again = structure("Try Again", html = TRUE, class = c("html",     "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html",     "character")), try_again = structure("Incorrect", html = TRUE, class = c("html",     "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html",     "character")), message = NULL, post_message = NULL), ids = list(        answer = "cv_t_quiz-1-answer", question = "cv_t_quiz-1"),     loading = structure("<strong>Loading:<\u002fstrong> \nFind the critical value for a 95% CI from a sample with \\(n=15\\).\n<br/><br/><br/>", html = TRUE, class = c("html",     "character")), random_answer_order = TRUE, allow_retry = TRUE,     seed = 1169276613.95551, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "cv_t_quiz-2",     question = structure("Find the critical value for a 95% CI from a sample with \\(n=10\\).", html = TRUE, class = c("html",     "character")), answers = list(structure(list(id = "lnr_ans_ebe53b3",         option = "2.26", value = "2.26", label = structure("2.26", html = TRUE, class = c("html",         "character")), correct = TRUE, message = structure("The \\(t-\\) distribution changes depending on the sample size, so the critical value changes too.", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_9cc0d02",         option = "1.83", value = "1.83", label = structure("1.83", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("Did you change the percentile cutoffs to <code>c(0.025, 0.975)<\u002fcode>?", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_dcf3459",         option = "2.14", value = "2.14", label = structure("2.14", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("The \\(t-\\) distribution changes depending on the sample size, so the critical value changes too. Change the degrees of freedom.", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_c2af78b",         option = "1.96", value = "1.96", label = structure("1.96", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("This is still for the Normal distribution, but not for small samples when working with means.", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html",     "character")), try_again = structure("Try Again", html = TRUE, class = c("html",     "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html",     "character")), try_again = structure("Incorrect", html = TRUE, class = c("html",     "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html",     "character")), message = NULL, post_message = NULL), ids = list(        answer = "cv_t_quiz-2-answer", question = "cv_t_quiz-2"),     loading = structure("<strong>Loading:<\u002fstrong> \nFind the critical value for a 95% CI from a sample with \\(n=10\\).\n<br/><br/><br/>", html = TRUE, class = c("html",     "character")), random_answer_order = TRUE, allow_retry = TRUE,     seed = 733041851.158651, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "cv_t_quiz-3",     question = structure("Find the critical value for a 95% CI from a sample with \\(n=400\\).", html = TRUE, class = c("html",     "character")), answers = list(structure(list(id = "lnr_ans_6aeaf69",         option = "1.96", value = "1.96", label = structure("1.96", html = TRUE, class = c("html",         "character")), correct = TRUE, message = structure("When the sample is large, th \\(t-\\) distribution and the Normal distribution are almost identical, so it should make sense the critical value is the same.", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_8cb66c4",         option = "1.65", value = "1.65", label = structure("1.65", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("Did you change the percentile cutoffs to <code>c(0.025, 0.975)<\u002fcode>?", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_166ec65",         option = "2.14", value = "2.14", label = structure("2.14", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("Change your degrees of freedom", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_6c5d3c6",         option = "1.83", value = "1.83", label = structure("1.83", html = TRUE, class = c("html",         "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer",     "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html",     "character")), try_again = structure("Try Again", html = TRUE, class = c("html",     "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html",     "character")), try_again = structure("Incorrect", html = TRUE, class = c("html",     "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html",     "character")), message = NULL, post_message = NULL), ids = list(        answer = "cv_t_quiz-3-answer", question = "cv_t_quiz-3"),     loading = structure("<strong>Loading:<\u002fstrong> \nFind the critical value for a 95% CI from a sample with \\(n=400\\).\n<br/><br/><br/>", html = TRUE, class = c("html",     "character")), random_answer_order = TRUE, allow_retry = TRUE,     seed = 282721475.368348, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "cv_t_quiz-4",     question = structure("Find the critical value for a 99% CI from a sample with \\(n=6\\).", html = TRUE, class = c("html",     "character")), answers = list(structure(list(id = "lnr_ans_a989536",         option = "4.03", value = "4.03", label = structure("4.03", html = TRUE, class = c("html",         "character")), correct = TRUE, message = structure("We need to go pretty far away from the center with such a small sample size!", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_ff263ea",         option = "3.71", value = "3.71", label = structure("3.71", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("Is your \\(df=n-1\\)?", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_652c026",         option = "2.02", value = "2.02", label = structure("2.02", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("Did you change the percentile cutoffs to <code>c(0.005, 0.995)<\u002fcode>?", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_c3e592f",         option = "2.57", value = "2.57", label = structure("2.57", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("Did you change the percentile cutoffs to <code>c(0.005, 0.995)<\u002fcode>?", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html",     "character")), try_again = structure("Try Again", html = TRUE, class = c("html",     "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html",     "character")), try_again = structure("Incorrect", html = TRUE, class = c("html",     "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html",     "character")), message = NULL, post_message = NULL), ids = list(        answer = "cv_t_quiz-4-answer", question = "cv_t_quiz-4"),     loading = structure("<strong>Loading:<\u002fstrong> \nFind the critical value for a 99% CI from a sample with \\(n=6\\).\n<br/><br/><br/>", html = TRUE, class = c("html",     "character")), random_answer_order = TRUE, allow_retry = TRUE,     seed = 703759876.172286, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-pval-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-pval-code-editor`)), session)
+output$`tutorial-exercise-pval-output` <- renderUI({
+  `tutorial-exercise-pval-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "ex_quiz-1", question = structure("What are the null and alternative hypotheses?", html = TRUE, class = c("html", "character")), answers = list(structure(list(id = "lnr_ans_57ec765",     option = "$H_0: \\mu=0.08$ and $H_a: \\mu \\ne 0.08$", value = "$H_0: \\mu=0.08$ and $H_a: \\mu \\ne 0.08$",     label = structure("\\(H_0: \\mu=0.08\\) and \\(H_a: \\mu \\ne 0.08\\)", html = TRUE, class = c("html",     "character")), correct = TRUE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e672708",     option = "$H_0: \\mu=0.08$ and $H_a: \\mu<0.08$", value = "$H_0: \\mu=0.08$ and $H_a: \\mu<0.08$",     label = structure("\\(H_0: \\mu=0.08\\) and \\(H_a: \\mu<0.08\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e441932",     option = "$H_0: p = 0.08$ and $H_a: p<0.08$", value = "$H_0: p = 0.08$ and $H_a: p<0.08$",     label = structure("\\(H_0: p = 0.08\\) and \\(H_a: p<0.08\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_8e34de8",     option = "$H_0: \\mu > 0.08$ and $H_a: \\mu<0.08$", value = "$H_0: \\mu > 0.08$ and $H_a: \\mu<0.08$",     label = structure("\\(H_0: \\mu > 0.08\\) and \\(H_a: \\mu<0.08\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer")), structure(list(id = "lnr_ans_ace2150",     option = "$H_0: \\mu=0.08$ and $H_a: \\mu > 0.08$", value = "$H_0: \\mu=0.08$ and $H_a: \\mu > 0.08$",     label = structure("\\(H_0: \\mu=0.08\\) and \\(H_a: \\mu > 0.08\\)", html = TRUE, class = c("html",     "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer", "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html", "character")), try_again = structure("Try Again", html = TRUE, class = c("html", "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", "character")), try_again = structure("Incorrect", html = TRUE, class = c("html", "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", "character")), message = NULL, post_message = NULL), ids = list(    answer = "ex_quiz-1-answer", question = "ex_quiz-1"), loading = structure("<strong>Loading:<\u002fstrong> \nWhat are the null and alternative hypotheses?\n<br/><br/><br/>", html = TRUE, class = c("html", "character")), random_answer_order = TRUE, allow_retry = TRUE,     seed = 1719235906.69942, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "cond_quiz-1",     question = structure("The condition of Independence is:", html = TRUE, class = c("html",     "character")), answers = list(structure(list(id = "lnr_ans_5382ae5",         option = "Reasonably met", value = "Reasonably met",         label = structure("Reasonably met", html = TRUE, class = c("html",         "character")), correct = TRUE, message = structure("Since the sample was taken randomly, we can assume the students are independent of one another", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_299bf05",         option = "Not met", value = "Not met", label = structure("Not met", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("Maybe if the students were all at the same party, but it&#39;s safe to assume since the sample was random the students are independent", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html",     "character")), try_again = structure("Try Again", html = TRUE, class = c("html",     "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html",     "character")), try_again = structure("Incorrect", html = TRUE, class = c("html",     "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html",     "character")), message = NULL, post_message = NULL), ids = list(        answer = "cond_quiz-1-answer", question = "cond_quiz-1"),     loading = structure("<strong>Loading:<\u002fstrong> \nThe condition of Independence is:\n<br/><br/><br/>", html = TRUE, class = c("html",     "character")), random_answer_order = TRUE, allow_retry = TRUE,     seed = 1950113189.09191, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "cond_quiz-2",     question = structure("Using the histogram of <code>BAC<\u002fcode> above, the condition of Nearly Normal/Sample size is:", html = TRUE, class = c("html",     "character")), answers = list(structure(list(id = "lnr_ans_4129e4a",         option = "Reasonably met, even though the sample is small the data don't seem extremely skewed",         value = "Reasonably met, even though the sample is small the data don't seem extremely skewed",         label = structure("Reasonably met, even though the sample is small the data don&#39;t seem extremely skewed", html = TRUE, class = c("html",         "character")), correct = TRUE, message = NULL), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_5bace8b",         option = "Not met, the sample is too small and the data are too skewed",         value = "Not met, the sample is too small and the data are too skewed",         label = structure("Not met, the sample is too small and the data are too skewed", html = TRUE, class = c("html",         "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_a9e2a77",         option = "Reasonable met, the sample is large enough for the CLT to kick in",         value = "Reasonable met, the sample is large enough for the CLT to kick in",         label = structure("Reasonable met, the sample is large enough for the CLT to kick in", html = TRUE, class = c("html",         "character")), correct = FALSE, message = structure("We&#39;d like to see at least 30 for the CLT to work.", html = TRUE, class = c("html",         "character"))), class = c("tutorial_question_answer",     "tutorial_quiz_answer")), structure(list(id = "lnr_ans_d4f1649",         option = "No way to know with this information", value = "No way to know with this information",         label = structure("No way to know with this information", html = TRUE, class = c("html",         "character")), correct = FALSE, message = NULL), class = c("tutorial_question_answer",     "tutorial_quiz_answer"))), button_labels = list(submit = structure("Submit Answer", html = TRUE, class = c("html",     "character")), try_again = structure("Try Again", html = TRUE, class = c("html",     "character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html",     "character")), try_again = structure("Incorrect", html = TRUE, class = c("html",     "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html",     "character")), message = NULL, post_message = NULL), ids = list(        answer = "cond_quiz-2-answer", question = "cond_quiz-2"),     loading = structure("<strong>Loading:<\u002fstrong> \nUsing the histogram of <code>BAC<\u002fcode> above, the condition of Nearly Normal/Sample size is:\n<br/><br/><br/>", html = TRUE, class = c("html",     "character")), random_answer_order = TRUE, allow_retry = TRUE,     seed = 1088954338.99292, options = list()), class = c("learnr_radio", "tutorial_question")))
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-ex_code-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-ex_code-code-editor`)), session)
+output$`tutorial-exercise-ex_code-output` <- renderUI({
+  `tutorial-exercise-ex_code-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-check-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-check-code-editor`)), session)
+output$`tutorial-exercise-check-output` <- renderUI({
+  `tutorial-exercise-check-result`()
+})
+</script>
+ <!--html_preserve-->
+<script type="application/shiny-prerendered" data-context="dependencies">
+{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/jquery"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.12"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootstrap"]},{"type":"character","attributes":{},"value":["3.3.5"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/bootstrap"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["viewport"]}},"value":[{"type":"character","attributes":{},"value":["width=device-width, initial-scale=1"]}]},{"type":"character","attributes":{},"value":["js/bootstrap.min.js","shim/html5shiv.min.js","shim/respond.min.js"]},{"type":"character","attributes":{},"value":["css/journal.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.12"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["pagedtable"]},{"type":"character","attributes":{},"value":["1.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/pagedtable-1.1"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/pagedtable.js"]},{"type":"character","attributes":{},"value":["css/pagedtable.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.12"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["highlightjs"]},{"type":"character","attributes":{},"value":["9.12.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/highlightjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["highlight.js"]},{"type":"character","attributes":{},"value":["textmate.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.12"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-autocompletion"]},{"type":"character","attributes":{},"value":["0.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-autocompletion.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-diagnostics"]},{"type":"character","attributes":{},"value":["0.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-diagnostics.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-format"]},{"type":"character","attributes":{},"value":["0.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmarkdown/templates/tutorial/resources"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-format.js"]},{"type":"character","attributes":{},"value":["tutorial-format.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/jquery"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.12"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["navigation"]},{"type":"character","attributes":{},"value":["1.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/navigation-1.1"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tabsets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.12"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["highlightjs"]},{"type":"character","attributes":{},"value":["9.12.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/highlightjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["highlight.js"]},{"type":"character","attributes":{},"value":["default.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.12"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/jquery"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.12"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["font-awesome"]},{"type":"character","attributes":{},"value":["5.1.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/fontawesome"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/all.css","css/v4-shims.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.12"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootbox"]},{"type":"character","attributes":{},"value":["4.4.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/bootbox"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["bootbox.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["idb-keyvalue"]},{"type":"character","attributes":{},"value":["3.2.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/idb-keyval"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["idb-keyval-iife-compat.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-autocompletion"]},{"type":"character","attributes":{},"value":["0.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-autocompletion.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-diagnostics"]},{"type":"character","attributes":{},"value":["0.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-diagnostics.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.10.1"]}]}]}
+</script>
+<!--/html_preserve-->
+<!--html_preserve-->
+<script type="application/shiny-prerendered" data-context="execution_dependencies">
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82]}},"value":[{"type":"character","attributes":{},"value":["assertthat","backports","base","broom","checkmate","colorspace","compiler","crayon","crosstalk","datasets","digest","dplyr","ellipsis","evaluate","farver","generics","ggdendro","ggforce","ggformula","ggplot2","ggrepel","ggstance","glue","graphics","grDevices","grid","gridExtra","gtable","hms","htmltools","htmlwidgets","httpuv","jsonlite","knitr","labeling","later","lattice","lazyeval","leaflet","learnr","lifecycle","magrittr","markdown","MASS","Matrix","methods","mime","mosaic","mosaicCore","mosaicData","munsell","nlme","openintro","pillar","pkgconfig","polyclip","promises","purrr","R6","Rcpp","readr","rlang","rmarkdown","rprojroot","scales","shiny","splines","stats","stringi","stringr","tibble","tidyr","tidyselect","tools","tweenr","utils","vctrs","viridisLite","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["0.2.1","1.1.5","3.6.0","0.5.5","2.0.0","1.4-1","3.6.0","1.3.4","1.0.0","3.6.0","0.6.25","0.8.5","0.3.0","0.14","2.0.1","0.0.2","0.1-20","0.3.1","0.9.4","3.3.0","0.8.0","0.3.1","1.3.2","3.6.0","3.6.0","3.6.0","2.3","0.2.0","0.5.3","0.3.6","1.3","1.5.0","1.6","1.22","0.3","0.8.0","0.20-38","0.2.2","2.0.2","0.10.1","0.1.0","1.5","0.9","7.3-51.4","1.2-17","3.6.0","0.6","1.6.0","0.6.0","0.17.0","0.5.0","3.1-139","1.7.1","1.4.3","2.0.3","1.10-0","1.0.1","0.3.3","2.4.1","1.0.4","1.3.1","0.4.5","1.12","1.3-2","1.0.0","1.2.0","3.6.0","3.6.0","1.4.3","1.4.0","2.1.3","1.0.2","0.2.5","3.6.0","1.0.1","3.6.0","0.2.4","0.3.0","2.1.2","0.5","1.8-3","2.2.0"]}]}]}
+</script>
+<!--/html_preserve-->
+</div>
+</div>
+
+</div> <!-- topics -->
+
+<div class="topicsContainer">
+<div class="topicsPositioner">
+<div class="band">
+<div class="bandContent topicsListContainer">
+
+<!-- begin doc-metadata -->
+<div id="doc-metadata">
+<h2 class="title toc-ignore" style="display:none;">Single Numeric Variables and the t-Distribution</h2>
+<h3 class="subtitle"><em>Ch. 4.1</em></h3>
+</div>
+<!-- end doc-metadata -->
+
+</div> <!-- bandContent.topicsListContainer -->
+</div> <!-- band -->
+</div> <!-- topicsPositioner -->
+</div> <!-- topicsContainer -->
+
+
+</div> <!-- bandContent page -->
+</div> <!-- pageContent band -->
+
+
+
+
+<script>
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+
+</body>
+
+</html>
