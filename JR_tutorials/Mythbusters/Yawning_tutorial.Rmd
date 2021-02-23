@@ -1,0 +1,238 @@
+---
+title: "Randomization Test Example"
+author: "Joe Roith"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  learnr::tutorial:
+    allow_skip: TRUE
+    progressive: TRUE
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(mosaic)  
+library(dplyr)  
+library(ggplot2)
+library(ggmosaic)
+library(readr)
+library(knitr)
+library(infer)
+
+yawns <- read.csv("https://raw.githubusercontent.com/joeroith/Data/master/yawns.csv")
+yawn_table <- table(yawns$Group, yawns$Result)
+yawn_props <- prop.table(yawn_table, 1)
+obs.diffinprop <- yawn_props[2,2] - yawn_props[1,2]
+
+null_distn <- yawns %>%
+  specify(Result ~ Group, success = "Yawn") %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in props", order = c("Seeded", "Control")) 
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  fig.align = "center",
+  fig.width = 6, fig.height = 4)
+```
+
+## Is Yawning Contagious?
+
+### Mythbusters is on the case
+
+An experiment conducted by the *MythBusters*, a science entertainment TV program on the Discovery Channel, tested if a person can be subconsciously influenced into yawning if another person near them yawns [(Season 3, Episode 28)](https://www.dailymotion.com/video/x5vmskk).  50 people were randomly assigned to two groups: 34 to a group where a person near them yawned (seeded) and 16 to a group where there wasn't a person yawning near them (control).  (See also Exercise 2.6.)  We wish to determine if their experiment provided, as claimed on the show, significant evidence that yawning is contagious.  
+
+![](images/yawn.png)
+
+&nbsp;
+
+> First Questions to Ask:
+
+1. What is the research question?
+
+1. What type of study is this?
+
+1. What are the response and explanatory variables?
+
+1. What type of variable is each of the above?
+
+
+
+### The Data
+
+Below are the results of the experiment:  
+
+| | Yawn | No Yawn | Total |
+--| :------- | :------- | :-------|
+Control | 4 | 12 | 16 | 
+Seeded | 10 | 24 | 34 | 
+Total | 14 | 36 | 50 | 
+
+To analyse in R, load the necessary packages and the data set with one row per subject, which is stored as `yawns.csv` in our **Class** > **Data folder**.
+
+```{r, eval = FALSE, echo = TRUE}
+library(openintro)
+library(mosaic)  
+library(dplyr)  
+library(ggplot2)
+library(infer)
+
+yawns <- read.csv("~/Stats 212b S20/Class/Data/yawns.csv")
+```
+
+
+## EDA 
+
+### Part 1 - Check and organize/summarize
+
+Go ahead and explore the data a little. What are the variable names? Can you see the first few cases to check the data? Can you create a table called `yawn_table` that shows the counts from the table above?
+
+Feel free to check the `DolphinRandomization.Rmd` file for helpful code.
+
+```{r EDA, exercise = TRUE}
+
+```
+
+```{r EDA-hint}
+names(________)
+head(________)
+yawn_table <- table(_________, _________)
+```
+
+### Part 2 - Visualize
+
+Use the table from the last section to plot the relationship using the `mosaicplot()` function.   
+
+```{r EDA2, exercise = TRUE}
+
+```
+
+```{r EDA2-hint}
+mosaicplot(_________, color = c("lightblue", "lightgreen"),
+           main = "_____________")
+
+```
+
+
+## The Hypothesis Test
+
+### State the Null and Alternative
+
+Think about the research question. How would you formulate that into a null and alternative hypothesis using words? How would you write it out using the symbols discussed in class?
+
+> Pay careful attention to how you phrase the research question. It has implications to how you will write your alternative hypothesis.
+
+### The Evidence
+
+First create a table of row proportions (so the rows add up to 1.0) called `yawn_props`. Then find the proportion of subjects who yawned in each group, and calculate the observed difference in proportions, you can call this `obs.diffinprop`.  
+
+```{r props, exercise = TRUE}
+
+```
+
+
+```{r props-hint}
+# Table of proportions
+yawn_props <- prop.table(__________, __)
+yawn_props
+
+# Remember to pick the correct proportion from the 
+# table using `[row #, col #]` after the table name.
+# I'm doing seeded proportion - control proportion
+obs.diffinprop <- yawn_props[__,__] - yawn_props[__,__]
+obs.diffinprop
+```
+
+
+### Unusual?
+
+Do you think this observed difference in the proportion of people who yawned would be unusual if yawns really weren't contagious (null true)?
+
+How could you simulate the null model using playing cards?
+
+```{r cards-quiz}
+quiz(
+  question(
+    "How many cards would you need to simulate the null model for this experiment?",
+    answer("50", correct = TRUE),
+    answer("30"),
+    answer("52"),
+    answer("1000"),
+    allow_retry = TRUE,
+    random_answer_order = TRUE
+  ),
+  question(
+    "How many cards would represent the 'yawners'?",
+    answer("14", correct = TRUE),
+    answer("36"),
+    answer("34"),
+    answer("16"),
+    allow_retry = TRUE,
+    random_answer_order = TRUE
+  )
+)
+```
+
+### Null Model
+
+Create the null model for the difference in proportion of yawners. Use 1000 simulations. The code below should help:
+
+
+```{r, eval = FALSE, echo = TRUE}
+null_distn <- __________ %>%
+  specify( ______ ~ ______, success = "________") %>%
+  hypothesize(null = "________") %>%
+  generate(reps = _________, type = "permute") %>%
+  calculate(stat = "_________", order = c("_______", "_______"))
+```
+
+```{r null, exercise = TRUE}
+
+```
+
+If your code is correct, you won't see anything. Check `DolphinRandomization.Rmd` for help.
+
+### Calculate P-values
+
+Report both a one-sided and a two-sided p-value for testing if there's a significant difference between the seeded group and the control group.  
+
+#### The One tailed test
+
+Visualize the null model and where our observation is. And then calculate the actual value. Consider carefully which direct to use for the one tailed test.
+
+```{r, eval = FALSE, echo = TRUE}
+null_distn %>%
+  visualize(method = "__________") +
+  shade_p_value(____________, direction = "_______")
+
+null_distn %>%
+  get_p_value(obs_stat = _______________, direction = "_______")
+```
+
+```{r onep, exercise = TRUE}
+
+```
+
+#### The Two tailed test
+
+Alter the code above for a two-tailed test.
+
+```{r twop, exercise = TRUE}
+
+```
+
+
+## Conclusion in Context
+
+### Myth Busted?
+
+![](images/myth-busted.jpg)
+
+At the end of the episode, Jamie (the mustached one) claims it is plausible that yawning is contagious. Do you agree? Can the MythBusters claim that there is "significant" evidence that yawning is contagious?  Defend your answer.  
+
+How might you have improved the design of this experiment to test the effect of yawning seeds?
+
+
+### Check
+
+You can check your R code and answers in the `Mythbusters_key.Rmd` file in the **Class** > **Ch 2 Mythbusters** folder.

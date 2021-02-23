@@ -1,0 +1,13 @@
+name: MythbustersTutorial
+title: MythbustersTutorial
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1844498
+bundleId: 3590425
+url: https://jroith.shinyapps.io/MythbustersTutorial/
+when: 1599166760.0415
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: MythbustersTutorial_hardcopy.pdf|MythbustersTutorial_hardcopy.Rmd|MythbustersTutorial.html|Yawning_tutorial.html|Yawning_tutorial.Rmd

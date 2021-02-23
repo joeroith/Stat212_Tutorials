@@ -1,0 +1,13 @@
+name: Yawning_tutorial
+title: Yawning_tutorial
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1846188
+bundleId: 2818675
+url: https://jroith.shinyapps.io/Yawning_tutorial/
+when: 1582310304.45915
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: MythbustersTutorial.html|MythbustersTutorial.Rmd|MythbustersTutorial_files/figure-html/unnamed-chunk-3-1.png|MythbustersTutorial_files/figure-html/unnamed-chunk-4-1.png|MythbustersTutorial_files/figure-html/unnamed-chunk-5-1.png
