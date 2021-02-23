@@ -1,0 +1,13 @@
+name: inference_single_proportion_tutorial
+title: inference_single_proportion_tutorial
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1935217
+bundleId: 3258822
+url: https://jroith.shinyapps.io/inference_single_proportion_tutorial/
+when: 1591910168.20555
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: inference_single_proportion_tutorial.html

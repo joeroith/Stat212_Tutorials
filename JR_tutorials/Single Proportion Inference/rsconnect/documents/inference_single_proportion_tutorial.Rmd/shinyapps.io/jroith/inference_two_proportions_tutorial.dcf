@@ -1,0 +1,13 @@
+name: inference_two_proportions_tutorial
+title:
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1955884
+bundleId: 3258903
+url: https://jroith.shinyapps.io/inference_two_proportions_tutorial/
+when: 1591911388.85557
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: inference_single_proportion_hardcopy.pdf|inference_single_proportion_hardcopy.Rmd|inference_single_proportion_tutorial.html
