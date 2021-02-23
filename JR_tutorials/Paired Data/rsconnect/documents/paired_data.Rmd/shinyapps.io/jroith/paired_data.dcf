@@ -1,0 +1,13 @@
+name: paired_data
+title: paired_data
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2075977
+bundleId: 3292467
+url: https://jroith.shinyapps.io/paired_data/
+when: 1592581023.82029
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: paired_data_hardcopy.pdf|paired_data_hardcopy.Rmd|paired_data.html
