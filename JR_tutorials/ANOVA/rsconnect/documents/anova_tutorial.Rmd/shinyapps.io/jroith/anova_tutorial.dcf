@@ -1,0 +1,13 @@
+name: anova_tutorial
+title: anova_tutorial
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2117981
+bundleId: 4127205
+url: https://jroith.shinyapps.io/anova_tutorial/
+when: 1611264337.95211
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: anova_tutorial_hardcopy.pdf|anova_tutorial_hardcopy.Rmd|anova_tutorial.html
