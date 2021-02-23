@@ -1,0 +1,527 @@
+---
+title: "Multiple Regression - Overview"
+subtitle: "Selections from Ch. 6"
+date: "Spring 2020"
+output:
+  pdf_document:
+    fig_height: 3
+    fig_width: 4.5
+  html_document: default
+  word_document: default
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+#library(learnr)
+library(mosaic)
+library(mosaicData)
+library(openintro)
+library(tidyverse)
+library(GGally)
+library(knitr)
+
+knitr::opts_chunk$set(echo = FALSE)
+
+data("marioKart")
+
+mario_kart <- marioKart %>%
+  filter(totalPr < 100)
+
+mario_model <- lm(totalPr ~ cond, data = mario_kart)
+mario_multreg <- lm(totalPr ~ nBids + sellerRate, data = mario_kart)
+
+data("SAT")
+# create new variable
+SAT = mutate(SAT, frac_group = cut(frac, 
+      breaks=c(0, 22, 49, 81), 
+      labels=c("low fraction", "medium fraction", "high fraction")))
+```
+
+## The Setup
+
+### []()
+
+Real data analysis happens with more than one or two variables at a time. We have covered the basics for a lot of different scenarios, but we will end this semester with some examples of variable combinations we haven't seen.
+
++ Single Regression with a categorical variable
+
++ Multiple regression with more than 2 numeric variables
+
++ Multiple regression with categorical variables
+
+I won't ask that you need to read all of Ch. 6, and I won't cover everything in this tutorial. But I do want it to serve an an example of what you can do with more complex data, possibly in your DARs or as a teaser for what you would do in Stat 272: Statistical Modelling.
+
+
+## Regression with a Categorical Variable
+
+### []()
+
+We already have a way to analyze one numeric response and one categorical explanatory, t-test for the difference in two means or ANOVA for more than two means. But we can actually do an equivalent analysis using regression to get the same results. I'll show you an example as a way to develop our thinking about categorical variables in a regression model.
+
++ <font color='blue'>**Response Variable:**</font> Numeric
+
++ <font color='green'>**Explanatory Variable:**</font> Categorical (2+ levels)
+
+### Example - Mario Kart
+
+The dataset `mario_kart` contains the price of 143 internet auctioned Mario Kart games for Nintendo Wii in October 2009. See the raw data below.
+
+```{r mkart}
+head(mario_kart)
+```
+
+
+Among the variables is one called `cond` for the condition of the game ("new" or "used"). One research question we may have is to see if the average total price is the same for new and used Mario Kart games. Run the two means t-test for `totalPr` and `cond` in R. Report the test statistic, p-value, and conclusion of the test.
+
+> Add the argument `var.equal = TRUE` to your `t.test` function. This will assume that the population prices have the same spread for new and used games and will make the comparison to regression nicer.
+
+
+
+### []()
+
+What is the difference between the two sample means (used - new)?^[a]
+
+a) -10.90
+
+b) 10.90
+
+c) 8.41
+
+d) 42.87
+
+What was your test statistic for the two sample t-test?^[c]
+
+a) 53.77
+
+b) 13.39
+
+c) 8.66
+
+d) 123.99
+
+What was your p-value for the two sample t-test?^[d]
+
+a) 0.0768
+
+b) 0.1296
+
+c) 0.7255
+
+d) 0
+
+What is your conclusion for the two sample t-test?^[b]
+
+a) There is enough evidence from the sample to say the mean total price of all used games is higher than new games.
+
+b) There is enough evidence from the sample to say the mean total price of all new games is higher than used games.
+
+c) There is enough evidence from the sample to say the mean total price of all used and new games is the same.", message = "We don't want to accept the null hypothesis.
+
+d) There is not enough evidence from the sample to say there is a difference between the mean prices of all new and used games
+
+
+### Now with regression
+
+How could we possibly perform this analysis using regression? We need two numeric variables to create a line. Well, our option is to force the categorical variable into a numeric one by making a <font color='blue'>**dummy variable**</font>. This is just a way for us to assign numbers to the different levels of the categorical variable. Run the code below to compare the side-by-side boxplots (using `cond` as categorical) and the scatterplot (where we force `cond` to be numeric).
+
+```{r mario}
+bwplot(totalPr ~ cond, data = mario_kart)
+```
+
+```{r}
+## notice the as.numeric() function to force the variable type
+gf_point(totalPr ~ as.numeric(cond), data = mario_kart)
+```
+
+
+What numeric value did the 'new' condition take when we forced it?^[b]
+
+a) 0
+
+b) 1
+
+c) 2
+
+What numeric value did the 'used' condition take when we forced it?^[c]
+
+a) 0
+
+b) 1
+
+c) 2
+
+Is there any *real* difference between the two plots above?^[b]
+
+a) Yes
+
+b) No
+
+
+
+### []()
+
+Now it's just a matter of running the regression analysis exactly like we would for two numeric variables. Try to get the regression slope and intercept estimates using `lm()`. Note that R will automatically change categorical variables to numeric for this function, so you don't need to use `as.numeric()` when fitting the model.
+
+
+What is the intercept estimate for the regression line?^[c]
+
+a) -10.90
+
+b) 1.26
+
+c) 53.77
+
+d) 0.96
+
+What is the slope coefficient estimate for the regression line?^[a]
+
+a) -10.90
+
+b) 1.26
+
+c) 53.77
+
+d) 0.96
+
+What is the test statistic for the significance of the slope coefficient?^[a]
+
+a) -8.66
+
+b) 56.03
+
+c) 0
+
+d) 0.35
+
+What is the p-value for the significance of the slope coefficient?^[c]
+
+a) -8.66
+
+b) 56.03
+
+c) 0
+
+d) 0.35
+
+
+> What sort of similarities do you see when comparing the linear regression output to the t-test output?
+
+### []()
+
+Essentially, we ran the same statistical test when we performed the two sample t-test and the regression analysis. Consider the output again:
+
+```{r}
+t.test(totalPr ~ cond, data = mario_kart, var.equal = TRUE)
+summary(mario_model)
+```
+
+Notice that:
+
++ The intercept estimate (53.77) **is the same** as the sample mean price for `new` games.
+
++ The slope estimate (-10.90) **is the same** as the difference between the two sample means.
+
++ The test statistics ($\pm8.66$) **are the same** (other than the sign).
+
++ The p-values ($\approx0$) **are the same**.
+
+> Isn't this COOL?!
+
+### []()
+
+When we interpret the regression equation, we want to think about `cond` as having a *baseline value* of "new". Meaning the intercept represents the average price for all new games. And if we consider "used" as a one unit increase in `cond`, then the slope should make sense. As we move from new to used games on our regression plot, we expect the average price to drop by $10.90 (the same difference in the sample means from the t-test). The test statistic and p-value confirm in both analyses that there is really a difference in the average prices of new and used games.
+
+```{r}
+gf_point(totalPr ~ as.numeric(cond), data = mario_kart) %>%
+  gf_lm()
+```
+
+
+
+## Multiple Regression
+
+### Just add predictors
+
+> Do you think more than one variable may be contributing to the response variable? You're probably right! There are lots of additional explanatory variables we may want to consider. To include them in the analysis, we just add them into our model.
+
+Maybe `nBids` helps play a role in the price of Mario Kart games? Maybe the `sellerRate` is a good predictor? Let's consider them!
+
+### []()
+
+First off, we should always remember to visualize and summarize the sample data before creating the regression model. Unfortunately, humans aren't that great at really being able to see relationships beyond 2-dimensions (sometimes you can see it in 3D, but it's often difficult). That means we will have to consider individual scatterplots for the response and explanatory variables we want to include. But it's really just a way for us to get a first look and rule out any curved or other non-linear patterns.
+
+You could do separate `gf_point()` plots for each of the pairs of variables. But you've made it through a semester of 212, so I'll give you a better way to do it in R:
+
+```{r plot_matrix}
+## Note this function requires a new package called `GGally`
+## It will work in this tutorial, but if you want to do something similar
+## in your account on the R server, you need to install it (just once) with:
+# install.packages("GGally")
+# load with library(GGally) and library(dplyr) before using the function ggpairs()
+
+mario_kart %>%
+  select(totalPr, nBids, sellerRate) %>%  # just take the variables we want from the full dataset
+  ggpairs()
+```
+
+So, you can see from the plots, there isn't a great relationship between total game price and either the number of bids or the seller rating. The correlations are low and the scatterplots don't look great. But we can still fit and interpret a multiple regression model!
+
+### []()
+
+We just want to add the explanatory variables into the right side of the equation in R: `lm(Resp ~ Expl1 + Expl2 + ..., data = dataset_name)`.
+
+```{r mario_mult}
+mario_multreg <- lm(totalPr ~ nBids + sellerRate, data = mario_kart)
+summary(mario_multreg)
+```
+
+
+### Model and Interpretations
+
+So we would write our regression equation as (just be careful with the scientific notation):
+
+$$\widehat{totalPr}=48.59-0.11\cdot nBids+0.000018\cdot sellerRate$$
+
+The interpretation for each of the explanatory variable coefficients is the same as our interpretation for slope in a single regression equation, **but we need to consider all other explanatory variables as constant.**
+
+> For every extra bid in the auction, with seller rate held constant, we would expect the total price to decrease by $0.11 on average.
+
+> For every extra point in the seller rate, with the number of bids held constant, we would expect the total price to increase by $0.000018.
+
+### Testing the predictors
+
+We can also run the hypothesis tests exactly the same way for each predictor as we would in an individual regression equation. For our example, there is not sufficient evidence to suggest that the number of bids (t = -0.806, p = 0.422) or the seller rate (t = 1.214, p = 0.227) are significant predictors of the total price of the game.
+
+So this particular model isn't very useful...
+
+### Check the conditions
+
+Multiple regression models have the same conditions as single regression models, and we check them the same way. For our example things look alright, there's a little group of observations that are away from the pack on the right and seem a little strange. But no condition looks *terribly* violated.
+
+
+```{r, fig.width=8, fig.height = 6}
+par(mfrow=c(2,2))
+plot(mario_multreg, which = 1:3)
+hist(mario_multreg$residuals)
+```
+
+
+### Confidence Intervals and Predictions
+
+Once we have the model, the rest is the same as we've seen with one explanatory variable. We can find confidence intervals for the variable coefficients.
+
+```{r coef_ci}
+confint(mario_multreg)
+```
+
+We can also create confidence and prediction intervals for expected total price at a specific combination of explanatory variable values. What would the average price be for all games that have 5 bids from a seller with a 1000 seller rating? And what is the expected price for a single game with those values?
+
+(Keep in mind, this model doesn't work very well, we've shown the variables are not good predictors. I'm just illustrating how the code works.)
+
+```{r mario_pred}
+pred_at <- data.frame(nBids = 5, sellerRate = 1000)
+
+predict(mario_multreg, pred_at, interval = "confidence")
+predict(mario_multreg, pred_at, interval = "prediction")
+```
+
+
+
+### CAUTION: Multicollinearity
+
+
+> One of the biggest things that changes when we start adding in multiple variables is the possibility that those variables are related to each other, in addition to the response variable. This is called **multicollinearity**. We want to avoid this if possible and consider keeping track of the interactions between each of the explanatory variables. Something to keep in mind when interpreting a multiple regression model. How to handle these situations is covered in Stat 272.
+
+## Another Example
+
+### []()
+
+Here we consider the average SAT scores for all 50 states and the average teacher salary (in $1000s). The data are below along with the simple linear regression output.
+
+```{r sat1}
+head(SAT)
+
+## A few extra bells and whistles in this plot like title and axis labels
+gf_point(sat ~ salary, data = SAT, size = 2,
+         title = "Teacher Salary as a Predictor of SAT Scores",
+         xlab = "Average Salary (in $1000)", ylab = "Average SAT Score") %>%
+  gf_lm()
+
+
+sat_model1 <- lm(sat ~ salary, data = SAT)
+summary(sat_model1)
+```
+
+### []()
+
+Use the output from above to answer the following questions.
+What are the cases/observational units?^[c]
+
+a) Teachers
+
+b) Students
+
+c) States
+
+d) The U.S.
+
+What are the response and explanatory variables?^[b,c]
+
+a) Response: Salary
+
+b) Response: SAT score
+
+c) Explanatory: Salary
+
+d) Explanatory: SAT score
+
+What is the regression equation?^[a]
+
+a) $\widehat{sat}=1158.9 - 5.54 \times salary$
+
+b) $\widehat{salary}=1158.9 - 5.54 \times sat$
+
+c) $\widehat{sat}=57.7 + 1.63 \times salary$
+
+d) $\widehat{sat}=1158.9 + 57.7 \times salary$
+            
+            
+What is the (adjusted) R-squared value for this model?^[d]
+
+a) 67.89
+
+b) 11.52
+
+c) 0.0014
+
+d) 0.177
+
+What could you conclude from this regression model?^[d]
+
+a) The higher teachers get paid, the higher we can expect SAT scores.
+
+b) There is no relationship between teacher salaries and SAT scores.
+
+c) We don't have strong enough data to say anything about the relationship.
+
+d) The more teachers get paid, the lower we can expect SAT scores.
+
+
+### Dig a little deeper
+
+Can it really be true that states with higher teacher salaries have students who perform worse on the SAT? Would cutting pay help a state raise it's average SAT score?
+
+> Not so fast, there are other variables to consider here. This one relationship isn't telling the entire story.
+
+Another variable in the dataset is called `frac_group` which represents the percentage of high school students in that state who take the SAT. The break down for `frac_group` is as follows:
+
+| Percent who take SAT | `frac_group` value |
+| :------------------- | :----------------- |
+| 0% - 22%             | `low fraction`     |
+| 22% - 49%            | `medium fraction`  |
+| 49% - 81%            | `high fraction`    |
+
+*81% is the highest observed percentage
+
+Can you tell any difference in the trends by viewing the scatterplot with different colors for the fraction group?
+
+```{r sat_frac}
+gf_point(sat ~ salary, data = SAT, size = 2, color = ~frac_group, 
+         title = "Teacher Salary as a Predictor of SAT Scores",
+         xlab = "Average Salary (in $1000)", ylab = "Average SAT Score")
+```
+
+### Multiple Regression model
+
+Fit the model for SAT scores using salary and fraction who take the test.
+
+Is teacher salary still a significant predictor of SAT scores?^[b]
+
+a) Yes, it is still significant.
+
+b) No, it is no longer significant.
+
+What is the (adjusted) R-squared for this multiple regression model?^[d]
+
+a) 0.177
+
+b) 34.09
+
+c) 63.35
+
+d) 0.792
+
+Comparing R-squared values for this model with the previous one, which do you think is the better for explaining SAT scores?^[a]
+
+a) The multiple regression model is better for explaining SAT scores since it has a higher R-squared value.
+
+b) The multiple regression model is better for explaining SAT scores since it has a lower R-squared value.
+
+c) The simple regression model is better for explaining SAT scores since it has a lower R-squared value.
+
+d) The simple regression model is better for explaining SAT scores since it has a higher R-squared value.
+
+### Comparing Models
+
+Using $R^2$ to compare different models for the same response is a great way to decide which is better at "fitting" the data. A model with a higher $R^2$ can explain more of the variation in the response and so should be preferred. 
+
+But be aware that adding more variables to the model will *always* increase the multiple $R^2$ value. Even if the variables are bad predictors it will increase just a tiny bit. That's why you should always consider the **adjusted $R^2$** when comparing models. We adjust it by decreasing the $R^2$ a little bit for every extra explanatory variable. That way the added variable must be a significant predictor in order to improve the "fit" while overcoming the "penalty".
+
+### []()
+
+So how would we read this new model? It looks like there are two new variables in the R output, `frac_groupmedium fraction` and `frac_grouphigh fraction`. What happened to the `low` group and what do the coefficient estimates mean?
+
+
+```{r}
+sat_model2 <- lm(sat ~ salary + frac_group, data = SAT)
+summary(sat_model2)
+
+gf_point(sat ~ salary, data = SAT, size = 2, color = ~frac_group, 
+         title = "Teacher Salary as a Predictor of SAT Scores",
+         xlab = "Average Salary (in $1000)", ylab = "Average SAT Score") %>%
+  gf_lm(color = ~frac_group)
+```
+
+The way to interpret this is to think about how many levels our categorical variable has (3 levels in this case). One of those levels will always be the "baseline" and is represented by the intercept coefficient. The other levels will get their own *dummy variables* and the coefficient estimates represent the average difference between that level and the baseline. So for our example, we would read the output above as:
+
++ The average SAT score for states that have a `low fraction` of students taking the test **is 1002.24**.
+
++ The average SAT score for states that have a `medium fraction` of students taking the test is **111.74 points below the low fraction states, or 890.5**.
+
++ The average SAT score for states that have a `high fraction` of students waking the test is **150.38 points below the low fraction states, or 851.86**.
+
++ With all else being held constant, for every extra $1000 in the average state teacher salary, we can expect SAT scores to increase by 1.09 points (but salary is not a good predictor in this model).
+
+At first glance, these interpretations might not make sense. But consider that in some states (like East coast states) many colleges require SAT scores and therefore a large percentage of students, good and bad, will take the SAT to try and get into school. For other states where the SAT is not required, usually only the better students end up taking the SAT. So low fraction represents the best students taking the test.
+
+And at least we have a reason explaining the strange relationship in the first model. The confounding variable of how many students take the SAT could have led to some poor policy decisions and cuts to state education departments.
+
+### Conditions
+
+Feel free to check the conditions for this model. Some potential issues (Normality maybe), but overall not too bad.
+
+```{r sat_cond, fig.width=8, fig.height = 6}
+par(mfrow=c(2,2))
+plot(sat_model2, which = 1:3)
+hist(sat_model2$residuals)
+```
+
+## End of Material
+
+This is where we will stop for our content this semester. But there are still lots of really fun types of analysis and modeling you can do with data that we haven't covered.
+
++ **Logistic Regression:** Categorical response and numeric explanatory.
+
++ **Machine Learning:** Improving models based on incoming data.
+
++ **Advanced regression techniques:** Like LASSO, Ridge regression, and others for more accurate models or when conditions are not met.
+
++ **Advanced ANOVA:** Two-way ANOVA, Interactions, MANOVA, ANCOVA, nonparametric techniques. 
+
++ **Data Viz:** Lots more we can do with visualizing data using heat maps, geographical maps, 3D modeling, music, taste, the options are endless!
+
+I really hope you consider taking more stats classes at St. Olaf. I say this as only a partially biased observer (since it's my first year teaching here) but you have one of the BEST undergraduate statistics and data science programs in the country at your fingertips. And this is a subject that can help you stand out in any job or grad program.
+
+
+

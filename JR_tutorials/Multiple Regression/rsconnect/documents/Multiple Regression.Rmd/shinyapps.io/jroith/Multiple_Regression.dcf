@@ -1,0 +1,13 @@
+name: Multiple_Regression
+title: Multiple_Regression
+username:
+account: jroith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2233554
+bundleId: 3812255
+url: https://jroith.shinyapps.io/Multiple_Regression/
+when: 1604349195.08608
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: Multiple Regression_hardcopy.Rmd|Multiple_Regression_hardcopy.pdf|Multiple_Regression.html
